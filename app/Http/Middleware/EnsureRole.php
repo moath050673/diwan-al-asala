@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+/**
+ * تحقق من دور المستخدم (admin / staff) قبل السماح بالوصول لمسارات لوحة التحكم
+ * الاستخدام في الراوت: ->middleware('role:admin,staff')
+ */
+class EnsureRole
+{
+    public function handle(Request $request, Closure $next, ...$roles)
+    {
+        $user = $request->user();
+
+        if (!$user || !in_array($user->role, $roles)) {
+            return response()->json(['success' => false, 'message' => 'لا تملك صلاحية الوصول إلى هذا المورد'], 403);
+        }
+
+        return $next($request);
+    }
+}

@@ -1,0 +1,127 @@
+/* ===================================================================
+   مكونات إضافية: الفلاتر، السلة، الفورم، لوحة التقييم...
+   تستخدم نفس Design Tokens المعرَّفة في style.css (:root)
+   =================================================================== */
+
+/* ---------- Filters bar ---------- */
+.filters-bar {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 12px; color: var(--color-text-muted); font-weight: 700; }
+.filter-group select, .filter-group input {
+  padding: 9px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-surface); color: var(--color-text); font-size: 14px; min-width: 150px;
+}
+.filters-bar .results-count { margin-inline-start: auto; color: var(--color-text-muted); font-size: 14px; }
+
+/* ---------- Cart table ---------- */
+.cart-table { width: 100%; border-collapse: collapse; background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
+.cart-table th { background: var(--color-surface); color: var(--color-text); padding: 14px; font-size: 13px; text-align: right; }
+.cart-table td { padding: 14px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.cart-item-info { display: flex; align-items: center; gap: 12px; }
+.cart-item-thumb { width: 64px; height: 64px; border-radius: var(--radius-sm); background: var(--color-surface); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--color-primary); overflow: hidden; }
+.cart-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.qty-control { display: flex; align-items: center; gap: 8px; }
+.qty-control button { width: 30px; height: 30px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); font-size: 16px; }
+.qty-control input { width: 44px; text-align: center; border: 1px solid var(--color-border); border-radius: 6px; padding: 5px; background: var(--color-surface); color: var(--color-text); }
+.remove-item { color: var(--color-danger); font-size: 13px; font-weight: 600; }
+
+.cart-summary { background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 22px; box-shadow: var(--shadow-sm); }
+.summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: var(--color-text-muted); }
+.summary-row.total { border-top: 1px solid var(--color-border); margin-top: 8px; padding-top: 14px; font-size: 18px; font-weight: 800; color: var(--color-primary); }
+
+/* ---------- Forms ---------- */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 700; color: var(--color-text); }
+.form-group label .req { color: var(--color-danger); }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-surface); color: var(--color-text); font-size: 14px; outline: none; transition: border-color var(--transition-fast);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--color-primary); }
+.form-error { color: var(--color-danger); font-size: 12px; margin-top: 4px; display: none; }
+.form-group.invalid input, .form-group.invalid textarea { border-color: var(--color-danger); }
+.form-group.invalid .form-error { display: block; }
+
+/* ---------- Payment method cards ---------- */
+.payment-methods { display: grid; gap: 14px; }
+.payment-option {
+  border: 1.5px solid var(--color-border); border-radius: var(--radius-md); padding: 16px;
+  background: var(--color-surface-elevated);
+  display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.payment-option.selected { border-color: var(--color-primary); background: rgba(198, 161, 91, .08); }
+.payment-option input { margin-top: 4px; }
+.payment-option .pm-title { font-weight: 700; color: var(--color-text); }
+.payment-option .pm-desc { font-size: 13px; color: var(--color-text-muted); margin-top: 2px; }
+.payment-details { background: var(--color-surface); border-radius: var(--radius-sm); padding: 14px; margin-top: 12px; font-size: 13px; display: none; }
+.payment-option.selected .payment-details { display: block; }
+.payment-details .row { display: flex; justify-content: space-between; padding: 4px 0; }
+.payment-details .row strong { color: var(--color-text); }
+
+/* ---------- Order success ---------- */
+.order-success-card { background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 48px 30px; text-align: center; box-shadow: var(--shadow-md); }
+.order-success-card .check { font-size: 60px; color: var(--color-success); margin-bottom: 16px; }
+.order-info-list { text-align: right; max-width: 380px; margin: 24px auto; background: var(--color-surface); border-radius: var(--radius-sm); padding: 16px 20px; }
+.order-info-list .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; border-bottom: 1px dashed var(--color-border); }
+.order-info-list .row:last-child { border-bottom: none; }
+
+/* ---------- Steps (checkout progress) ---------- */
+.checkout-steps { display: flex; justify-content: center; gap: 10px; margin-bottom: 32px; }
+.checkout-steps .step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-muted); }
+.checkout-steps .step.active { color: var(--color-text); font-weight: 700; }
+.checkout-steps .num { width: 26px; height: 26px; border-radius: 50%; background: var(--color-border); color: var(--color-text); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.checkout-steps .step.active .num { background: var(--color-primary); color: var(--color-bg); }
+.checkout-steps .sep { width: 30px; height: 1px; background: var(--color-border); align-self: center; }
+
+/* ---------- Badges / stock alerts ---------- */
+.low-stock-alert { background: rgba(198, 161, 91, .1); border: 1px solid var(--color-primary); color: var(--color-primary-hover); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; }
+
+/* ---------- Mobile menu ---------- */
+.mobile-nav {
+  position: fixed; inset: 0 0 0 20%; background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  transform: translateX(100%); transition: transform var(--transition-normal); z-index: 300;
+  padding: 24px; overflow-y: auto;
+}
+.mobile-nav.open { transform: translateX(0); }
+.mobile-nav a { display: block; color: var(--color-text); font-size: 18px; padding: 14px 0; border-bottom: 1px solid var(--color-border); }
+.mobile-nav-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .6); z-index: 299; display: none; }
+.mobile-nav-overlay.open { display: block; }
+.mobile-close { text-align: left; color: var(--color-primary); font-size: 26px; margin-bottom: 10px; }
+
+/* ---------- Product detail ----------
+   لم تُعدَّل منطقيًا في هذه المرحلة (مؤجّلة لمرحلة لاحقة)، لكنها تستخدم
+   نفس Design Tokens تلقائيًا فتظهر بألوان الهوية الجديدة دون أي تغيير هنا. */
+.pd-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; }
+.pd-gallery-main { height: 420px; border-radius: var(--radius-lg); background: linear-gradient(160deg, var(--color-surface), var(--color-bg)); display: flex; align-items: center; justify-content: center; font-size: 70px; color: var(--color-primary); overflow: hidden; }
+.pd-gallery-main img { width: 100%; height: 100%; object-fit: cover; }
+.pd-thumbs { display: flex; gap: 10px; margin-top: 12px; }
+.pd-thumbs .thumb { width: 70px; height: 70px; border-radius: var(--radius-sm); background: var(--color-surface); border: 2px solid transparent; cursor: pointer; overflow: hidden; }
+.pd-thumbs .thumb.active { border-color: var(--color-primary); }
+.pd-info h1 { font-family: var(--font-display); font-size: 30px; color: var(--color-text); margin-bottom: 8px; }
+.pd-price-row { display: flex; align-items: baseline; gap: 12px; margin: 14px 0; }
+.pd-price-row .now { font-size: 28px; font-weight: 800; color: var(--color-primary); }
+.pd-price-row .old { font-size: 16px; color: var(--color-text-muted); text-decoration: line-through; }
+.pd-meta { display: flex; gap: 18px; margin: 14px 0; font-size: 13px; color: var(--color-text-muted); flex-wrap: wrap; }
+.pd-desc { color: var(--color-text); margin: 18px 0; line-height: 1.9; }
+.pd-qty-row { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
+.pd-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.pd-actions .btn { flex: 1; min-width: 160px; }
+
+@media (max-width: 900px) {
+  .pd-wrap { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+}

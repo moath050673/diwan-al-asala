@@ -1,0 +1,42 @@
+/* ===================================================================
+   Responsive — Mobile First Adjustments
+   Breakpoints tested: 320 / 375 / 414 / 768 / 1024 / 1440 / 1920
+   =================================================================== */
+
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .hero h1 { font-size: 42px; }
+}
+
+@media (max-width: 900px) {
+  .main-nav, .search-bar { display: none; }
+  .hamburger { display: flex; }
+  .hero { padding: 60px 0; }
+  .hero h1 { font-size: 32px; }
+  .hero p { font-size: 16px; }
+  .section { padding: 44px 0; }
+  .section-title h2 { font-size: 26px; }
+}
+
+@media (max-width: 640px) {
+  .header-main { padding: 10px 0; }
+  .logo { font-size: 20px; }
+  .footer-grid { grid-template-columns: 1fr; text-align: center; }
+  .social-icons { justify-content: center; }
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .categories-grid { grid-template-columns: repeat(2, 1fr); }
+  .cart-table thead { display: none; }
+  .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: block; width: 100%; }
+  .cart-table tr { margin-bottom: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 10px; }
+  .cart-table td { border: none; padding: 6px 4px; }
+  .filters-bar { flex-direction: column; align-items: stretch; }
+  .filters-bar select, .filters-bar input { min-width: 100%; }
+  .hero-actions .btn { flex: 1; }
+  .whatsapp-float { width: 50px; height: 50px; font-size: 22px; bottom: 16px; left: 16px; }
+}
+
+@media (max-width: 400px) {
+  .products-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 26px; }
+  .container { padding: 0 14px; }
+}
