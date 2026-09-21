@@ -31,9 +31,6 @@ function renderHeader(activePage = '') {
         <a href="/about" class="${activePage === 'about' ? 'active' : ''}">من نحن</a>
         <a href="/contact" class="${activePage === 'contact' ? 'active' : ''}">تواصل معنا</a>
       </nav>
-      <button class="icon-btn nav-toggle-btn" id="nav-toggle-btn" aria-label="إخفاء/إظهار القائمة" title="إخفاء/إظهار القائمة">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      </button>
       <div class="search-bar">
         <span>🔍</span>
         <input type="text" id="global-search" placeholder="ابحث عن عطر، بخور، زباد..." />
@@ -77,18 +74,6 @@ function renderHeader(activePage = '') {
   // زر إخفاء/إظهار القائمة الرئيسية على شاشات الكمبيوتر (بناءً على طلب مباشر،
   // رغم أن إبقاءها ظاهرة دائمًا هو المعتاد في أغلب المواقع). نحفظ التفضيل
   // في المتصفح حتى يبقى نفس الاختيار عند التنقل بين الصفحات.
-  const mainNav = document.getElementById('main-nav');
-  const navToggleBtn = document.getElementById('nav-toggle-btn');
-  const applyNavVisibility = () => {
-    const hidden = localStorage.getItem('diwan_nav_hidden') === '1';
-    mainNav?.classList.toggle('collapsed', hidden);
-  };
-  navToggleBtn?.addEventListener('click', () => {
-    const isHidden = mainNav?.classList.toggle('collapsed');
-    localStorage.setItem('diwan_nav_hidden', isHidden ? '1' : '0');
-  });
-  applyNavVisibility();
-
   const searchInput = document.getElementById('global-search');
   searchInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && searchInput.value.trim()) {

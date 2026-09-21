@@ -11,6 +11,19 @@ class OrderController extends Controller
 {
     public function __construct(private OrderService $orderService) {}
 
+    private function notifyNewOrder($order): void
+    {
+        try {
+            \Mail::raw(
+                "طلب جديد رقم #{$order->order_number}\nالعميل: {$order->customer_name}\nالجوال: {$order->customer_phone}\nالإجمالي: {$order->total} ر.ي\n\nافتح لوحة التحكم لمراجعته.",
+                function ($msg) {
+                    $msg->to(env('STORE_OWNER_EMAIL'))->subject('🔔 طلب جديد في ديوان الأصالة');
+                }
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('تعذّر إرسال إشعار الطلب: '.$e->getMessage());
+        }
+    }
     // Guest checkout — لا حاجة لتسجيل الدخول
     public function store(Request $request)
     {
@@ -42,6 +55,8 @@ class OrderController extends Controller
         }
 
         $order = $this->orderService->createOrder($data);
+                $order = $this->orderService->createOrder($data);
+        $this->notifyNewOrder($order);
 
         return response()->json(['success' => true, 'data' => [
             'id' => $order->id,
