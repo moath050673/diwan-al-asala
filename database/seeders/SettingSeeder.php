@@ -10,18 +10,18 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
-            'store_name' => env('STORE_NAME', 'متجر ديوان الأصالة'),
-            'store_currency' => env('STORE_CURRENCY', 'ريال يمني'),
-            'whatsapp_number' => env('WHATSAPP_NUMBER', '967700000000'),
-            'facebook_url' => env('FACEBOOK_URL', 'https://facebook.com/'),
-            'instagram_url' => env('INSTAGRAM_URL', 'https://instagram.com/'),
-            'shipping_cost_sanaa' => env('SHIPPING_COST_SANAA', 1500),
+            'store_name' => config('store.name'),
+            'store_currency' => config('store.currency'),
+            'whatsapp_number' => config('store.whatsapp_number'),
+            'facebook_url' => config('store.facebook_url'),
+            'instagram_url' => config('store.instagram_url'),
+            'shipping_cost_sanaa' => config('store.shipping_cost_sanaa'),
             'jib_enabled' => '1',
-            'jib_account_name' => env('JIB_ACCOUNT_NAME', 'متجر ديوان الأصالة'),
-            'jib_account_number' => env('JIB_ACCOUNT_NUMBER', 'PLACEHOLDER'),
+            'jib_account_name' => config('store.jib.account_name'),
+            'jib_account_number' => config('store.jib.account_number'),
             'kareemi_enabled' => '1',
-            'kareemi_account_name' => env('KAREEMI_ACCOUNT_NAME', 'متجر ديوان الأصالة'),
-            'kareemi_account_number' => env('KAREEMI_ACCOUNT_NUMBER', 'PLACEHOLDER'),
+            'kareemi_account_name' => config('store.kareemi.account_name'),
+            'kareemi_account_number' => config('store.kareemi.account_number'),
             'cod_enabled' => '1',
         ];
 

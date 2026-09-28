@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Setting;
 
 /**
  * PageController — يعرض صفحات الواجهة الأمامية (Blade views).
@@ -16,7 +16,16 @@ class PageController extends Controller
     public function product($id) { return view('pages.product', ['id' => $id]); }
     public function categories() { return view('pages.categories'); }
     public function cart() { return view('pages.cart'); }
-    public function checkout() { return view('pages.checkout'); }
+    public function checkout()
+    {
+        // بيانات حسابات جيب/كريمي تُكتب مباشرة في الصفحة — لا تعتمد على طلب JavaScript منفصل
+        $payment = Setting::many([
+            'cod_enabled', 'jib_enabled', 'jib_account_name', 'jib_account_number',
+            'kareemi_enabled', 'kareemi_account_name', 'kareemi_account_number',
+        ]);
+
+        return view('pages.checkout', ['payment' => $payment]);
+    }
     public function orderSuccess() { return view('pages.order-success'); }
     public function about() { return view('pages.about'); }
     public function contact() { return view('pages.contact'); }

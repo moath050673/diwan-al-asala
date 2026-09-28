@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SaveProductRequest;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Services\ProductImageStorage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    public function __construct(private ProductImageStorage $images) {}
+
     public function index(Request $request)
     {
         $query = Product::query()->active()->with(['category', 'images']);
@@ -24,8 +29,8 @@ class ProductController extends Controller
                     ->orWhere('description', 'like', "%{$q}%");
             });
         }
-        if ($min = $request->query('minPrice')) $query->where('price', '>=', $min);
-        if ($max = $request->query('maxPrice')) $query->where('price', '<=', $max);
+        if (is_numeric($min = $request->query('minPrice'))) $query->where('price', '>=', $min);
+        if (is_numeric($max = $request->query('maxPrice'))) $query->where('price', '<=', $max);
 
         match ($request->query('sort')) {
             'price_asc' => $query->orderBy('price', 'asc'),
@@ -34,7 +39,7 @@ class ProductController extends Controller
             default => $query->orderBy('created_at', 'desc'),
         };
 
-        $products = $query->paginate($request->query('limit', 20));
+        $products = $query->paginate($this->perPage($request));
 
         $data = $products->getCollection()->map(fn ($p) => $this->transform($p));
 
@@ -92,77 +97,143 @@ class ProductController extends Controller
     }
 
     // ---------- Admin only ----------
-    public function store(Request $request)
+
+    /** كل المنتجات (النشطة والمخفية) للوحة التحكم */
+    public function adminIndex(Request $request)
     {
-        $data = $request->validate([
-            'categoryId' => 'required|exists:categories,id',
-            'name' => 'required|string|max:200',
-            'sku' => 'required|string|max:60|unique:products,sku',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'oldPrice' => 'nullable|numeric|min:0',
-            'stockQuantity' => 'required|integer|min:0',
-            'weight' => 'nullable|string',
-            'size' => 'nullable|string',
-            'featured' => 'nullable|boolean',
-        ]);
+        $query = Product::with(['category', 'images'])->orderBy('status')->orderByDesc('id');
+        if ($q = $request->query('q')) {
+            $query->where(fn ($sub) => $sub->where('name', 'like', "%{$q}%")->orWhere('sku', 'like', "%{$q}%"));
+        }
+
+        $data = $query->paginate($this->perPage($request, 100))->getCollection()
+            ->map(fn ($p) => $this->adminTransform($p));
+
+        return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    public function adminShow($id)
+    {
+        $product = Product::with(['category', 'images'])->findOrFail($id);
+        return response()->json(['success' => true, 'data' => $this->adminTransform($product)]);
+    }
+
+    private function adminTransform(Product $p): array
+    {
+        return [
+            ...$this->transform($p),
+            'categoryId' => $p->category_id,
+            'description' => $p->description,
+            'status' => $p->status,
+            'weight' => $p->weight,
+            'size' => $p->size,
+            'imageItems' => $p->images->map(fn ($img) => [
+                'id' => $img->id,
+                'url' => $this->resolveImageUrl($img->image_url),
+            ])->values(),
+        ];
+    }
+
+    public function store(SaveProductRequest $request)
+    {
+        $attributes = $request->toAttributes();
 
         $product = Product::create([
-            'category_id' => $data['categoryId'],
-            'name' => $data['name'],
-            'slug' => Str::slug($data['name']).'-'.time(),
-            'sku' => $data['sku'],
-            'description' => $data['description'] ?? null,
-            'price' => $data['price'],
-            'old_price' => $data['oldPrice'] ?? null,
-            'stock_quantity' => $data['stockQuantity'],
-            'weight' => $data['weight'] ?? null,
-            'size' => $data['size'] ?? null,
-            'featured' => $data['featured'] ?? false,
+            ...$attributes,
+            // Str::random يمنع تصادم slug عند إنشاء منتجين بنفس الاسم في نفس الثانية
+            'slug' => Str::slug($attributes['name']).'-'.time().'-'.Str::lower(Str::random(4)),
+            'sku' => $attributes['sku'] ?? $this->generateSku(),
+            'featured' => $attributes['featured'] ?? false,
         ]);
 
         return response()->json(['success' => true, 'data' => ['id' => $product->id]], 201);
     }
 
-    public function update(Request $request, $id)
+    private function generateSku(): string
+    {
+        do {
+            $sku = 'DA-'.strtoupper(Str::random(6));
+        } while (Product::where('sku', $sku)->exists());
+
+        return $sku;
+    }
+
+    public function update(SaveProductRequest $request, $id)
     {
         $product = Product::findOrFail($id);
-        $data = $request->validate([
-            'categoryId' => 'sometimes|exists:categories,id',
-            'name' => 'sometimes|string|max:200',
-            'sku' => 'sometimes|string|max:60|unique:products,sku,'.$id,
-            'description' => 'sometimes|nullable|string',
-            'price' => 'sometimes|numeric|min:0',
-            'oldPrice' => 'sometimes|nullable|numeric|min:0',
-            'stockQuantity' => 'sometimes|integer|min:0',
-            'weight' => 'sometimes|nullable|string',
-            'size' => 'sometimes|nullable|string',
-            'status' => 'sometimes|in:active,inactive',
-            'featured' => 'sometimes|boolean',
-        ]);
-
-        $map = ['categoryId' => 'category_id', 'oldPrice' => 'old_price', 'stockQuantity' => 'stock_quantity'];
-        $update = [];
-        foreach ($data as $key => $value) $update[$map[$key] ?? $key] = $value;
-
-        $product->update($update);
+        $product->update($request->toAttributes());
 
         return response()->json(['success' => true, 'message' => 'تم تحديث المنتج']);
     }
 
     public function destroy($id)
     {
-        Product::where('id', $id)->update(['status' => 'inactive']);
+        Product::findOrFail($id)->update(['status' => 'inactive']);
         return response()->json(['success' => true, 'message' => 'تم إخفاء المنتج']);
     }
 
+    public const MAX_IMAGES = 10;
+
+    /** رفع صورة أو عدة صور (images[]) — أول صورة للمنتج تصبح الرئيسية */
     public function addImage(Request $request, $id)
     {
-        $request->validate(['image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120']);
+        $product = Product::withCount('images')->findOrFail($id);
 
-        $path = $request->file('image')->store('products', 'public');
-        $image = ProductImage::create(['product_id' => $id, 'image_url' => '/storage/'.$path]);
+        // images[] (عدة صور) أو image (صورة واحدة — للتوافق مع الاستدعاء القديم)
+        $files = $request->file('images') ?? array_filter([$request->file('image')]);
 
-        return response()->json(['success' => true, 'data' => ['imageUrl' => $image->image_url]], 201);
+        validator(['images' => $files], [
+            'images' => 'required|array|min:1|max:'.self::MAX_IMAGES,
+            'images.*' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120',
+        ], [
+            'images.required' => 'اختر صورة واحدة على الأقل',
+            'images.*.mimes' => 'الصور المسموحة: JPG أو PNG أو WEBP',
+            'images.*.max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت',
+        ])->validate();
+        if ($product->images_count + count($files) > self::MAX_IMAGES) {
+            return response()->json(['success' => false, 'message' => 'الحد الأقصى '.self::MAX_IMAGES.' صور لكل منتج'], 422);
+        }
+
+        $nextOrder = (int) $product->images()->max('sort_order') + ($product->images_count ? 1 : 0);
+        $created = [];
+        foreach ($files as $file) {
+            $created[] = ProductImage::create([
+                'product_id' => $product->id,
+                'image_url' => $this->images->store($file),
+                'sort_order' => $nextOrder++,
+            ]);
+        }
+
+        return response()->json(['success' => true, 'data' => [
+            'imageUrl' => $created[0]->image_url,
+            'images' => collect($created)->map(fn ($img) => ['id' => $img->id, 'url' => $img->image_url]),
+        ]], 201);
+    }
+
+    public function deleteImage($id, $imageId)
+    {
+        $image = ProductImage::where('product_id', $id)->findOrFail($imageId);
+
+        $this->images->delete($image->image_url);
+        $image->delete();
+
+        return response()->json(['success' => true, 'message' => 'تم حذف الصورة']);
+    }
+
+    /** جعل صورة هي الرئيسية (تظهر في بطاقة المنتج) */
+    public function setPrimaryImage($id, $imageId)
+    {
+        $product = Product::findOrFail($id);
+        $primary = $product->images()->findOrFail($imageId);
+
+        DB::transaction(function () use ($product, $primary) {
+            $order = 1;
+            foreach ($product->images()->where('id', '!=', $primary->id)->get() as $img) {
+                $img->update(['sort_order' => $order++]);
+            }
+            $primary->update(['sort_order' => 0]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'تم تعيين الصورة الرئيسية']);
     }
 }

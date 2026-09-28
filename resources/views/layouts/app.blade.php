@@ -7,6 +7,10 @@
 <meta name="description" content="@yield('description', 'متجر ديوان الأصالة، متخصص في بيع الزباد والبخور والعطور الأصيلة، توصيل داخل صنعاء اليمن.')">
 <link rel="canonical" href="{{ url()->current() }}">
 <link rel="icon" href="/img/logo.png">
+{{-- الخطوط المعرّفة في style.css (--font-display / --font-body) — لم تكن تُحمَّل من قبل --}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/components.css">
 <link rel="stylesheet" href="/css/responsive.css">
@@ -26,6 +30,8 @@
 <script>
   // عنوان الـ API الأساسي — يبقى نفس نطاق Laravel (نفس الدومين) دائمًا
   window.DIWAN_API_BASE = '/api';
+  // إعدادات المتجر من قاعدة البيانات (لوحة التحكم ← الإعدادات)
+  window.DIWAN_SERVER_SETTINGS = @json($publicSettings ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 </script>
 <script src="/js/api.js"></script>
 <script src="/js/products.js"></script>

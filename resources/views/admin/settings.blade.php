@@ -35,7 +35,11 @@
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
-    await adminRequest('/settings', { method: 'PUT', body: JSON.stringify(Object.fromEntries(fd.entries())) });
+    const res = await adminRequest('/settings', { method: 'PUT', body: JSON.stringify(Object.fromEntries(fd.entries())) });
+    if (!res || res.success === false || res.errors) {
+      alert((res && (Object.values(res.errors || {}).flat().join('\n') || res.message)) || 'تعذّر حفظ الإعدادات');
+      return;
+    }
     alert('تم حفظ الإعدادات بنجاح');
   });
 </script>

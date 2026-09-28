@@ -16,8 +16,8 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = env('ADMIN_EMAIL');
-        $password = env('ADMIN_PASSWORD');
+        $email = config('store.admin.email');
+        $password = config('store.admin.password');
 
         if (!$email || !$password) {
             $this->command->error('يرجى تعبئة ADMIN_EMAIL و ADMIN_PASSWORD في ملف .env أولًا.');
@@ -30,7 +30,7 @@ class AdminUserSeeder extends Seeder
         }
 
         User::create([
-            'name' => env('ADMIN_NAME', 'مدير المتجر'),
+            'name' => config('store.admin.name'),
             'email' => $email,
             'password' => Hash::make($password),
             'role' => 'admin',

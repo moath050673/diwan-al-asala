@@ -5,7 +5,7 @@
   <div class="container"><h1>سلة المشتريات</h1><div class="breadcrumb"><a href="/">الرئيسية</a> / السلة</div></div>
 </div>
 <div class="section">
-  <div class="container" id="cart-content" style="display:grid; grid-template-columns:2fr 1fr; gap:30px; align-items:start;">
+  <div class="container split-layout split-cart" id="cart-content">
     <div>
       <table class="cart-table" id="cart-table">
         <thead><tr><th>المنتج</th><th>السعر</th><th>الكمية</th><th>الإجمالي</th><th></th></tr></thead>
@@ -35,10 +35,10 @@
     }
 
     body.innerHTML = items.map(i => `
-      <tr data-id="${i.id}">
-        <td><div class="cart-item-info"><div class="cart-item-thumb">🧴</div><span>${i.name}</span></div></td>
+      <tr data-id="${escapeHtml(i.id)}">
+        <td><div class="cart-item-info"><div class="cart-item-thumb">${i.image ? `<img src="${escapeHtml(i.image)}" alt="" loading="lazy">` : "🧴"}</div><span>${escapeHtml(i.name)}</span></div></td>
         <td>${Products.formatPrice(i.price)}</td>
-        <td><div class="qty-control"><button class="qty-dec">−</button><input type="number" class="qty-val" value="${i.qty}" min="1"><button class="qty-inc">+</button></div></td>
+        <td><div class="qty-control"><button class="qty-dec">−</button><input type="number" class="qty-val" value="${escapeHtml(i.qty)}" min="1"><button class="qty-inc">+</button></div></td>
         <td>${Products.formatPrice(i.price * i.qty)}</td>
         <td><button class="remove-item">حذف</button></td>
       </tr>

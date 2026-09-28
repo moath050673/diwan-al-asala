@@ -125,3 +125,72 @@
   .pd-wrap { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* ===================================================================
+   تخطيط الصفحات ذات العمودين (السلة، الدفع، التواصل) — عمود واحد على الجوال
+   =================================================================== */
+.split-layout { display: grid; gap: 30px; align-items: start; }
+.split-cart { grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); }
+.split-checkout { grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); }
+.split-contact { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+@media (max-width: 900px) {
+  .split-layout { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  /* على الجوال يظهر ملخص الطلب أولًا ثم النموذج */
+  .split-checkout > .cart-summary { order: -1; }
+}
+
+/* ---------- طرق الدفع: بيانات الحساب ---------- */
+.payment-option { align-items: flex-start; }
+.pm-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.pm-account { display: none; margin-top: 10px; padding: 12px 14px; border-radius: var(--radius-sm); background: rgba(0, 0, 0, .22); border: 1px solid rgba(198, 161, 91, .25); }
+.payment-option.selected .pm-account { display: flex; flex-direction: column; gap: 12px; }
+.pm-field { display: flex; flex-direction: column; gap: 2px; }
+.pm-label { font-size: 12px; color: var(--color-text-muted); }
+.pm-value { color: var(--color-text); font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.pm-number { font-size: 20px; letter-spacing: 1px; font-variant-numeric: tabular-nums; user-select: all; -webkit-user-select: all; }
+.pm-value-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.btn-copy-number {
+  flex: none; padding: 9px 16px; min-height: 40px; border-radius: var(--radius-sm);
+  border: 1px solid var(--color-primary); background: transparent; color: var(--color-primary);
+  font-weight: 700; font-size: 14px; cursor: pointer; transition: background var(--transition-fast), color var(--transition-fast);
+}
+.btn-copy-number:hover, .btn-copy-number.copied { background: var(--color-primary); color: var(--color-bg); }
+
+/* ===================================================================
+   معرض صور المنتج — سحب بالإصبع (scroll-snap) + أسهم + مصغّرات
+   =================================================================== */
+.pd-gallery { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pd-stage { position: relative; }
+.pd-track {
+  display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  border-radius: var(--radius-lg); background: linear-gradient(160deg, var(--color-surface), var(--color-bg));
+  scrollbar-width: none; overscroll-behavior-x: contain; outline: none;
+}
+.pd-track::-webkit-scrollbar { display: none; }
+.pd-track:focus-visible { box-shadow: 0 0 0 2px var(--color-primary); }
+.pd-slide { flex: 0 0 100%; aspect-ratio: 1 / 1; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; }
+.pd-slide img { width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
+.pd-slide-empty { border-radius: var(--radius-lg); background: linear-gradient(160deg, var(--color-surface), var(--color-bg)); color: var(--color-primary); }
+.pd-slide-empty .product-thumb-placeholder { width: 45%; }
+.pd-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(20, 15, 10, .6); color: var(--color-text); font-size: 26px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+  border: 1px solid rgba(247, 242, 234, .18); transition: background var(--transition-fast);
+}
+.pd-nav:hover { background: var(--color-primary); color: var(--color-bg); }
+.pd-prev { right: 12px; }
+.pd-next { left: 12px; }
+.pd-counter {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(20, 15, 10, .65); color: var(--color-text); font-size: 12px; font-weight: 700;
+  padding: 3px 12px; border-radius: 20px; font-variant-numeric: tabular-nums; direction: ltr;
+}
+.pd-thumbs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.pd-thumbs .thumb { flex: none; padding: 0; }
+.pd-thumbs .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (hover: none) { .pd-nav { display: none; } } /* على اللمس: السحب بالإصبع يكفي */
+@media (max-width: 900px) {
+  .pd-wrap { gap: 24px; }
+  .pd-thumbs .thumb { width: 58px; height: 58px; }
+}

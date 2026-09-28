@@ -1,0 +1,309 @@
+/* ===================================================================
+   home.css — صفحة الهبوط (الرئيسية) فقط.
+   تعتمد بالكامل على Design Tokens المعرّفة في style.css.
+   =================================================================== */
+
+/* ---------- Hero ---------- */
+.landing-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: min(88vh, 780px);
+  display: flex;
+  align-items: center;
+  padding-block: 72px 96px;
+  background:
+    radial-gradient(ellipse 60% 70% at 22% 58%, rgba(198, 161, 91, .14), transparent 70%),
+    linear-gradient(180deg, #1B140D 0%, var(--color-bg) 62%, var(--color-bg) 100%);
+}
+
+/* لوحة WebGL خلف كل المحتوى */
+.hero-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+.landing-hero.is-3d .hero-scene { opacity: 1; }
+
+/* تعتيم الأطراف حتى يبقى النص واضحًا فوق المشهد */
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(270deg, rgba(27, 20, 13, .82) 0%, rgba(27, 20, 13, .35) 45%, transparent 70%),
+    linear-gradient(0deg, var(--color-bg) 0%, transparent 22%);
+}
+
+.landing-hero-inner {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  align-items: center;
+  gap: 40px;
+}
+
+.landing-hero-copy { display: flex; flex-direction: column; gap: 22px; max-width: 600px; }
+
+.landing-eyebrow {
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.landing-eyebrow::before {
+  content: '';
+  width: 34px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.landing-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 6vw, 72px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text);
+  text-wrap: balance;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, .45);
+}
+.landing-hero h1 span {
+  color: var(--color-primary);
+  background: linear-gradient(100deg, var(--color-primary-hover) 0%, var(--color-primary) 45%, #9C7A3C 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.landing-hero p {
+  font-size: clamp(16px, 1.6vw, 19px);
+  color: var(--color-text-muted);
+  max-width: 50ch;
+  line-height: 1.9;
+}
+
+.btn-lg { padding: 15px 30px; font-size: 16px; }
+.btn-ghost {
+  background: rgba(247, 242, 234, .06);
+  color: var(--color-text);
+  border: 1px solid rgba(247, 242, 234, .22);
+  backdrop-filter: blur(6px);
+}
+.btn-ghost:hover { border-color: var(--color-primary); color: var(--color-primary-hover); transform: translateY(-1px); }
+
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+.hero-facts li { display: inline-flex; align-items: center; gap: 8px; }
+.hero-facts li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary);
+}
+
+/* المبخرة — مصدر الدخان في المشهد ثلاثي الأبعاد */
+.landing-hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-top: 120px; /* مساحة لتصاعد الدخان فوق المبخرة */
+}
+.landing-hero-visual .mabkhara-illustration {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  filter: drop-shadow(0 24px 40px rgba(0, 0, 0, .55));
+  animation: mabkhara-float 7s ease-in-out infinite;
+}
+.mabkhara-glow {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  width: 70%;
+  aspect-ratio: 1;
+  max-width: 100%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(223, 160, 80, .35) 0%, rgba(198, 120, 50, .12) 40%, transparent 70%);
+  filter: blur(8px);
+  animation: ember-glow 3.6s ease-in-out infinite;
+}
+/* عند تشغيل المشهد ثلاثي الأبعاد يحل الدخان الحقيقي محل خطوط SVG */
+.landing-hero.is-3d .smoke-wisp { display: none; }
+
+@keyframes mabkhara-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes ember-glow {
+  0%, 100% { opacity: .75; }
+  50% { opacity: 1; }
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 42px;
+  border: 1.5px solid rgba(247, 242, 234, .35);
+  border-radius: 14px;
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+.scroll-cue span {
+  width: 3px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  animation: scroll-cue 1.8s ease-in-out infinite;
+}
+@keyframes scroll-cue {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+/* ---------- شريط المزايا ---------- */
+.trust-strip {
+  border-block: 1px solid rgba(198, 161, 91, .18);
+  background: var(--color-surface);
+}
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 18px;
+}
+.trust-item + .trust-item { border-inline-start: 1px solid rgba(198, 161, 91, .14); }
+.trust-item svg {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.trust-item div { display: flex; flex-direction: column; gap: 2px; }
+.trust-item strong { font-size: 15px; color: var(--color-text); }
+.trust-item span { font-size: 13px; color: var(--color-text-muted); }
+
+/* ---------- الأقسام ---------- */
+.section-raised { background: var(--color-surface); }
+.section-cta { display: flex; justify-content: center; margin-top: 36px; }
+
+/* ---------- خطوات الطلب ---------- */
+.order-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  counter-reset: none;
+}
+.order-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 26px 22px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(160deg, var(--color-surface-elevated), var(--color-surface));
+  border: 1px solid var(--color-border);
+}
+.order-steps li:not(:last-child)::after {
+  /* سهم يربط الخطوة بالتي تليها (الاتجاه RTL) */
+  content: '';
+  position: absolute;
+  top: 46px;
+  left: -17px;
+  width: 12px;
+  height: 12px;
+  border-top: 1.5px solid var(--color-primary);
+  border-left: 1.5px solid var(--color-primary);
+  transform: rotate(-45deg);
+  opacity: .6;
+}
+.step-num {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+  color: var(--color-primary);
+}
+.order-steps h3 { font-size: 17px; color: var(--color-text); }
+.order-steps p { font-size: 14px; color: var(--color-text-muted); line-height: 1.8; }
+
+/* ---------- الدعوة الأخيرة ---------- */
+.final-cta {
+  padding-block: 56px;
+  background:
+    radial-gradient(ellipse 50% 120% at 85% 50%, rgba(198, 161, 91, .16), transparent 70%),
+    var(--color-surface);
+  border-top: 1px solid rgba(198, 161, 91, .18);
+}
+.final-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.final-cta h2 { font-family: var(--font-display); font-size: clamp(26px, 3vw, 34px); color: var(--color-text); }
+.final-cta p { color: var(--color-text-muted); max-width: 52ch; margin-top: 6px; }
+
+/* ---------- الاستجابة للشاشات ---------- */
+@media (max-width: 960px) {
+  .landing-hero { min-height: 0; padding-block: 48px 84px; }
+  .landing-hero-inner { grid-template-columns: 1fr; gap: 12px; text-align: center; }
+  .landing-hero-copy { align-items: center; margin-inline: auto; }
+  .landing-hero-visual { order: -1; padding-top: 90px; }
+  .landing-hero-visual .mabkhara-illustration { max-width: 190px; }
+  .hero-actions, .hero-facts { justify-content: center; }
+  .hero-vignette { background: linear-gradient(0deg, rgba(27, 20, 13, .9) 0%, rgba(27, 20, 13, .45) 50%, transparent 80%); }
+  .trust-grid { grid-template-columns: repeat(2, 1fr); }
+  .trust-item:nth-child(3) { border-inline-start: 0; }
+  .trust-item:nth-child(n+3) { border-top: 1px solid rgba(198, 161, 91, .14); }
+  .order-steps { grid-template-columns: repeat(2, 1fr); }
+  .order-steps li::after { display: none; }
+}
+@media (max-width: 520px) {
+  .landing-hero-visual { padding-top: 70px; }
+  .landing-hero-visual .mabkhara-illustration { max-width: 150px; }
+  .hero-actions .btn { flex: 1 1 100%; }
+  .trust-grid { grid-template-columns: 1fr; }
+  .trust-item + .trust-item { border-inline-start: 0; border-top: 1px solid rgba(198, 161, 91, .14); }
+  .order-steps { grid-template-columns: 1fr; }
+  .final-cta-inner { justify-content: center; text-align: center; }
+  .final-cta .btn { width: 100%; }
+  .scroll-cue { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-visual .mabkhara-illustration,
+  .mabkhara-glow,
+  .scroll-cue span { animation: none; }
+}

@@ -65,7 +65,7 @@
     renderFooter();
 
     const catSelect = document.getElementById('f-category');
-    Products.categories.forEach(c => {
+    (await Products.loadCategories()).forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.slug; opt.textContent = c.name;
       catSelect.appendChild(opt);

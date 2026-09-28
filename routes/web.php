@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 // ---------- الواجهة الأمامية ----------
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/products', [PageController::class, 'products'])->name('products');
-Route::get('/product/{id}', [PageController::class, 'product'])->name('product');
+Route::get('/product/{id}', [PageController::class, 'product'])->whereNumber('id')->name('product');
 Route::get('/categories', [PageController::class, 'categories'])->name('categories');
 Route::get('/cart', [PageController::class, 'cart'])->name('cart');
 Route::get('/checkout', [PageController::class, 'checkout'])->name('checkout');

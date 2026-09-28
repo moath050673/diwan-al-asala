@@ -34,7 +34,7 @@
     `;
     const maxVal = Math.max(1, ...d.salesByDay.map(r => Number(r.total)));
     document.getElementById('sales-chart').innerHTML = d.salesByDay.map(r => `
-      <div title="${r.date}: ${formatPrice(r.total)}" style="flex:1; background:var(--gold); border-radius:4px 4px 0 0; height:${(r.total / maxVal) * 100}%; min-height:4px;"></div>
+      <div title="${escapeHtml(r.date)}: ${formatPrice(r.total)}" style="flex:1; background:var(--gold); border-radius:4px 4px 0 0; height:${(r.total / maxVal) * 100}%; min-height:4px;"></div>
     `).join('') || '<p style="color:#8A7A68;">لا توجد بيانات مبيعات بعد.</p>';
   })();
 </script>

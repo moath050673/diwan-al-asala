@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -26,7 +27,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('status');
-            $table->fullText(['name', 'description', 'sku']);
+            // Fulltext index is MySQL-only; skip on SQLite (used in tests) to avoid RuntimeException.
+            if (DB::connection()->getDriverName() === 'mysql') {
+                $table->fullText(['name', 'description', 'sku']);
+            }
         });
     }
 

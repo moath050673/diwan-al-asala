@@ -4,15 +4,30 @@
    لضمان تعديلها من مكان واحد.
    =================================================================== */
 
-// إعدادات المتجر (Placeholder — يجب جلبها من API الإعدادات عند الربط بالخادم)
-window.DIWAN_SETTINGS = {
-  storeName: 'متجر ديوان الأصالة',
-  whatsappNumber: '785149261', // ضعه في .env / لوحة التحكم عند النشر
-  facebookUrl: 'https://facebook.com/',
-  instagramUrl: 'https://instagram.com/',
-  currency: 'ريال يمني',
-  shippingCost: 1000,
-};
+// إعدادات المتجر: القيم هنا احتياطية فقط، وتُستبدل بما في قاعدة البيانات
+// (window.DIWAN_SERVER_SETTINGS يُحقن من layouts/app.blade.php) — عدّلها من لوحة التحكم ← الإعدادات.
+window.DIWAN_SETTINGS = (() => {
+  const defaults = {
+    storeName: 'متجر ديوان الأصالة',
+    whatsappNumber: '785149261',
+    facebookUrl: 'https://facebook.com/',
+    instagramUrl: 'https://instagram.com/',
+    currency: 'ريال يمني',
+    shippingCost: 1000,
+  };
+  const s = window.DIWAN_SERVER_SETTINGS || {};
+  const shipping = Number(s.shipping_cost_sanaa);
+  return {
+    storeName: s.store_name || defaults.storeName,
+    // 967700000000 هو الرقم التجريبي الافتراضي في SettingSeeder — لا نستخدمه بدل الرقم الحالي
+    whatsappNumber: s.whatsapp_number && s.whatsapp_number !== '967700000000' ? s.whatsapp_number : defaults.whatsappNumber,
+    facebookUrl: s.facebook_url || defaults.facebookUrl,
+    instagramUrl: s.instagram_url || defaults.instagramUrl,
+    currency: s.store_currency || defaults.currency,
+    // نفس القيمة التي يستخدمها OrderService في حساب الإجمالي
+    shippingCost: s.shipping_cost_sanaa !== undefined && !Number.isNaN(shipping) ? shipping : defaults.shippingCost,
+  };
+})();
 
 function renderHeader(activePage = '') {
   const el = document.getElementById('site-header');
@@ -95,10 +110,10 @@ function renderFooter() {
         <p>العطور | البخور | الزباد</p>
         <p>متجر متخصص في تقديم منتجات أصيلة ذات جودة عالية لعملائنا في صنعاء واليمن.</p>
         <div class="social-icons">
-          <a href="${s.facebookUrl}" target="_blank" rel="noopener" aria-label="فيسبوك">
+          <a href="${escapeHtml(s.facebookUrl)}" target="_blank" rel="noopener" aria-label="فيسبوك">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34V22c4.78-.79 8.44-4.94 8.44-9.94Z"/></svg>
           </a>
-          <a href="${s.instagramUrl}" target="_blank" rel="noopener" aria-label="انستقرام">
+          <a href="${escapeHtml(s.instagramUrl)}" target="_blank" rel="noopener" aria-label="انستقرام">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
           </a>
           <a href="${WhatsAppLink.general()}" target="_blank" rel="noopener" aria-label="واتساب">

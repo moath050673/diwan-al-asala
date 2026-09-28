@@ -14,7 +14,7 @@
       <div class="step"><span class="num">3</span> تأكيد الطلب</div>
     </div>
 
-    <div id="checkout-content" style="display:grid; grid-template-columns:1.6fr 1fr; gap:30px; align-items:start;">
+    <div id="checkout-content" class="split-layout split-checkout">
       <form id="checkout-form">
         <div class="form-grid">
           <div class="form-group full"><label>الاسم الكامل <span class="req">*</span></label><input type="text" name="name" required></div>
@@ -32,26 +32,56 @@
 
         <h3 style="margin:20px 0 12px; color:var(--primary); font-family:var(--font-display);">طريقة الدفع</h3>
         <div class="payment-methods">
+          @if(($payment['cod_enabled'] ?? '1') !== '0')
           <label class="payment-option selected" data-method="cod">
             <input type="radio" name="paymentMethod" value="cod" checked>
-            <div><div class="pm-title">الدفع عند الاستلام</div><div class="pm-desc">ادفع نقدًا عند استلام طلبك، لا حاجة لأي إيصال.</div></div>
+            <div class="pm-body"><div class="pm-title">الدفع عند الاستلام</div><div class="pm-desc">ادفع نقدًا عند استلام طلبك، لا حاجة لأي إيصال.</div></div>
           </label>
+          @endif
+          @if(($payment['jib_enabled'] ?? '1') !== '0')
           <label class="payment-option" data-method="jib">
             <input type="radio" name="paymentMethod" value="jib">
-            <div style="width:100%;">
+            <div class="pm-body">
               <div class="pm-title">جيب JIB</div>
-                              <div class="row"><span>اسم الحساب</span><strong id="jib-account-name">—</strong></div>
-                <div class="row"><span>رقم الحساب</span><strong id="jib-account-number">—</strong> <button type="button" class="btn-copy-number" data-target="jib-account-number" style="margin-right:8px; padding:3px 10px; font-size:12px; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--gold); cursor:pointer;">نسخ</button></div>
+              <div class="pm-desc">حوّل المبلغ إلى الحساب التالي ثم أرفق صورة الإيصال.</div>
+              <div class="pm-account">
+                <div class="pm-field">
+                  <span class="pm-label">اسم الحساب</span>
+                  <strong class="pm-value" id="jib-account-name">{{ $payment['jib_account_name'] ?: 'غير متوفر حاليًا' }}</strong>
+                </div>
+                <div class="pm-field">
+                  <span class="pm-label">رقم الحساب</span>
+                  <div class="pm-value-row">
+                    <strong class="pm-value pm-number" id="jib-account-number" dir="ltr">{{ $payment['jib_account_number'] ?: '—' }}</strong>
+                    <button type="button" class="btn-copy-number" data-target="jib-account-number">نسخ الرقم</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </label>
+          @endif
+          @if(($payment['kareemi_enabled'] ?? '1') !== '0')
           <label class="payment-option" data-method="kareemi">
             <input type="radio" name="paymentMethod" value="kareemi">
-            <div style="width:100%;">
+            <div class="pm-body">
               <div class="pm-title">كريمي Kareemi</div>
-                              <div class="row"><span>اسم الحساب</span><strong id="kareemi-account-name">—</strong></div>
-                <div class="row"><span>رقم الحساب</span><strong id="kareemi-account-number">—</strong> <button type="button" class="btn-copy-number" data-target="kareemi-account-number" style="margin-right:8px; padding:3px 10px; font-size:12px; border-radius:6px; border:1px solid var(--gold); background:transparent; color:var(--gold); cursor:pointer;">نسخ</button></div>
+              <div class="pm-desc">حوّل المبلغ إلى الحساب التالي ثم أرفق صورة الإيصال.</div>
+              <div class="pm-account">
+                <div class="pm-field">
+                  <span class="pm-label">اسم الحساب</span>
+                  <strong class="pm-value" id="kareemi-account-name">{{ $payment['kareemi_account_name'] ?: 'غير متوفر حاليًا' }}</strong>
+                </div>
+                <div class="pm-field">
+                  <span class="pm-label">رقم الحساب</span>
+                  <div class="pm-value-row">
+                    <strong class="pm-value pm-number" id="kareemi-account-number" dir="ltr">{{ $payment['kareemi_account_number'] ?: '—' }}</strong>
+                    <button type="button" class="btn-copy-number" data-target="kareemi-account-number">نسخ الرقم</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </label>
+          @endif
         </div>
 
         <div id="receipt-upload-wrap" style="display:none; margin-top:16px;">

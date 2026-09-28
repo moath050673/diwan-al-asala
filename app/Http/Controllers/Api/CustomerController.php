@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\DB;
 class CustomerController extends Controller
 {
     public function index(Request $request)
-    {        $stats = DB::table('orders')
+    {
+        $stats = DB::table('orders')
             ->select('customer_id')
             ->selectRaw('COUNT(id) as ordersCount, COALESCE(SUM(total), 0) as lifetimeValue')
             ->whereNotNull('customer_id')
@@ -25,7 +26,7 @@ class CustomerController extends Controller
             $query->where(fn ($sub) => $sub->where('customers.name', 'like', "%{$q}%")->orWhere('customers.phone', 'like', "%{$q}%"));
         }
 
-        $customers = $query->orderBy('customers.created_at', 'desc')->paginate($request->query('limit', 20));
+        $customers = $query->orderBy('customers.created_at', 'desc')->paginate($this->perPage($request));
 
         return response()->json(['success' => true, 'data' => $customers->items()]);
     }

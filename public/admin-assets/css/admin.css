@@ -144,3 +144,107 @@ table.admin-table tr:hover td { background:#fbf6ea; }
 .error-msg { background:#fde8e8; color:#b91c1c; padding:10px; border-radius:8px; font-size:13px; margin-bottom:14px; display:none; }
 
 @media (max-width:800px){ .admin-layout{flex-direction:column;} .sidebar{width:100%;} .sidebar nav{flex-direction:row; flex-wrap:wrap;} .sidebar .logout-btn{margin-top:14px;} }
+
+/* ===================================================================
+   إضافات: الصور، الإشعارات، تحديد الطلبات، والتجاوب مع الجوال
+   =================================================================== */
+.muted { color:#8A7A68; font-size:13px; }
+.btn-sm { padding:6px 12px; font-size:12px; }
+.btn:disabled { opacity:.55; cursor:not-allowed; }
+.form-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 16px; }
+.form-grid .full { grid-column:1 / -1; }
+.form-row .hint { display:block; font-size:12px; color:#8A7A68; font-weight:500; margin-top:4px; }
+.form-row .req { color:var(--danger); }
+.form-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+.check-row { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--primary); }
+.check-row input { width:auto; }
+
+/* ---------- صور المنتج ---------- */
+.thumb { width:48px; height:48px; border-radius:8px; object-fit:cover; background:var(--cream); display:block; }
+.thumb-empty { display:flex; align-items:center; justify-content:center; font-size:11px; color:#8A7A68; }
+.image-drop {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  border:2px dashed #e3d7c2; border-radius:12px; padding:22px 14px; text-align:center;
+  cursor:pointer; color:#8A7A68; font-size:14px; transition:border-color .15s ease, background .15s ease;
+}
+.image-drop:hover, .image-drop.dragover { border-color:var(--gold); background:#fbf6ea; }
+.image-drop strong { color:var(--primary); }
+.image-drop input { display:none; }
+.image-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:10px; margin-top:12px; }
+.image-tile { position:relative; border-radius:10px; overflow:hidden; background:var(--cream); aspect-ratio:1; border:2px solid transparent; }
+.image-tile img { width:100%; height:100%; object-fit:cover; display:block; }
+.image-tile.is-primary { border-color:var(--gold); }
+.image-tile .badge { position:absolute; top:6px; right:6px; background:var(--gold); color:var(--primary); font-size:11px; font-weight:800; padding:2px 8px; border-radius:20px; }
+.image-tile .badge.new { background:#1d4ed8; color:#fff; }
+.image-tile .tile-actions { position:absolute; inset:auto 0 0 0; display:flex; gap:4px; padding:6px; background:linear-gradient(0deg, rgba(0,0,0,.65), transparent); }
+.image-tile .tile-actions button { flex:1; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:5px 4px; cursor:pointer; background:rgba(255,255,255,.92); color:var(--primary); }
+.image-tile .tile-actions button.danger { background:var(--danger); color:#fff; }
+
+.stock-low { color:#b45309; font-weight:800; }
+.stock-out { color:var(--danger); font-weight:800; }
+
+/* ---------- الطلبات: التحديد والحذف ---------- */
+.toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+.toolbar select { padding:8px 10px; border:1px solid #e3d7c2; border-radius:8px; font-family:inherit; font-size:13px; }
+.toolbar .spacer { flex:1; }
+.danger-zone { border:1px solid #f3c2bd; background:#fff7f6; }
+.danger-zone h3 { color:var(--danger); font-size:16px; margin-bottom:6px; }
+.danger-zone .options { display:flex; flex-direction:column; gap:8px; margin:12px 0; }
+.danger-zone .options label { display:flex; gap:8px; align-items:center; font-size:14px; }
+.notice { padding:10px 14px; border-radius:8px; font-size:13.5px; margin-bottom:14px; }
+.notice.ok { background:#e6f6ea; color:#15803d; }
+.notice.err { background:#fde8e8; color:#b91c1c; }
+
+/* ---------- إشعارات الطلبات الجديدة ---------- */
+.nav-badge { margin-inline-start:auto; background:var(--danger); color:#fff; border-radius:20px; font-size:11px; font-weight:800; padding:1px 8px; line-height:18px; }
+.nav-badge[hidden] { display:none; }
+.notify-btn { width:100%; margin-top:16px; padding:10px; border-radius:var(--radius-sm); border:1px dashed rgba(200,155,60,.5); background:transparent; color:var(--gold-light); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.notify-btn.on { border-style:solid; background:rgba(200,155,60,.12); }
+.toast-stack { position:fixed; bottom:20px; left:20px; z-index:1000; display:flex; flex-direction:column; gap:10px; max-width:min(360px, calc(100vw - 40px)); }
+.admin-toast {
+  display:flex; gap:12px; align-items:flex-start; background:var(--sidebar-bg); color:var(--sidebar-text);
+  border-right:4px solid var(--gold); border-radius:10px; padding:14px 16px; box-shadow:0 12px 30px rgba(0,0,0,.35);
+  animation:toast-in .3s ease;
+}
+.admin-toast strong { color:var(--gold-light); display:block; margin-bottom:2px; }
+.admin-toast a { color:var(--gold-light); font-weight:700; font-size:13px; }
+.admin-toast .close { margin-inline-start:auto; background:none; border:none; color:var(--sidebar-text-muted); font-size:18px; cursor:pointer; line-height:1; }
+@keyframes toast-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+/* ---------- الجوال ---------- */
+@media (max-width:800px) {
+  .admin-layout { flex-direction:column; }
+  .sidebar { width:100%; padding:12px 14px; position:sticky; top:0; z-index:50; }
+  .sidebar .brand { font-size:16px; margin:0; }
+  .sidebar .brand::after { display:none; }
+  .sidebar nav { flex-direction:row; flex-wrap:nowrap; overflow-x:auto; gap:6px; margin-top:10px; padding-bottom:4px; scrollbar-width:none; }
+  .sidebar nav::-webkit-scrollbar { display:none; }
+  .sidebar nav a { white-space:nowrap; padding:8px 12px; font-size:13px; background:rgba(255,255,255,.04); }
+  .sidebar nav a.active { padding-right:12px; }
+  .sidebar nav a.active::after, .sidebar nav a::before { display:none; }
+  .sidebar .side-actions { display:flex; gap:8px; margin-top:8px; }
+  .sidebar .logout-btn, .notify-btn { margin-top:0; padding:8px; font-size:12px; }
+  .main { padding:16px 14px; }
+  .topbar { gap:10px; flex-wrap:wrap; }
+  .topbar h1 { font-size:19px; }
+  .card { padding:14px; }
+  .form-grid { grid-template-columns:1fr; }
+  .stat-grid { grid-template-columns:repeat(2, 1fr); gap:10px; }
+  .stat-card .value { font-size:19px; }
+
+  /* الجداول تتحول إلى بطاقات: كل صف بطاقة وكل خلية سطر "عنوان: قيمة" */
+  table.admin-table.responsive thead { display:none; }
+  table.admin-table.responsive, table.admin-table.responsive tbody, table.admin-table.responsive tr, table.admin-table.responsive td { display:block; width:100%; }
+  table.admin-table.responsive tr { border:1px solid var(--cream); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:#fff; }
+  table.admin-table.responsive tr:hover td { background:none; }
+  table.admin-table.responsive td { display:flex; justify-content:space-between; align-items:center; gap:10px; border:none; padding:6px 2px; text-align:left; }
+  table.admin-table.responsive td::before { content:attr(data-label); font-size:12px; font-weight:700; color:#8A7A68; text-align:right; }
+  table.admin-table.responsive td.cell-actions { justify-content:flex-end; flex-wrap:wrap; }
+  table.admin-table.responsive td.cell-actions::before, table.admin-table.responsive td[data-label=""]::before { display:none; }
+  .toast-stack { left:12px; right:12px; bottom:12px; max-width:none; }
+}
+@media (min-width:801px) { .sidebar .side-actions { display:flex; flex-direction:column; gap:8px; margin-top:auto; } .sidebar .side-actions .logout-btn { margin-top:0; } }
+/* نصوص طويلة بلا مسافات (أرقام، أسماء تجريبية) لا تكسر التخطيط */
+.admin-toast > div { min-width:0; overflow-wrap:anywhere; }
+table.admin-table td, #order-detail-body { overflow-wrap:anywhere; }
+@media (max-width:800px) { table.admin-table.responsive td > * { min-width:0; } }

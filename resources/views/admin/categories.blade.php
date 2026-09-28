@@ -13,7 +13,7 @@
       </form>
     </div>
     <div class="card">
-      <table class="admin-table">
+      <table class="admin-table responsive">
         <thead><tr><th>الاسم</th><th>الرابط (Slug)</th><th></th></tr></thead>
         <tbody id="cats-tbody"></tbody>
       </table>
@@ -30,7 +30,7 @@
     const res = await adminRequest('/categories');
     const rows = (res && res.data) || [];
     document.getElementById('cats-tbody').innerHTML = rows.map(c => `
-      <tr><td>${c.name}</td><td>${c.slug}</td><td><button class="btn btn-danger btn-del-cat" data-id="${c.id}">حذف</button></td></tr>
+      <tr><td data-label="الاسم">${escapeHtml(c.name)}</td><td data-label="الرابط">${escapeHtml(c.slug)}</td><td class="cell-actions"><button class="btn btn-danger btn-del-cat" data-id="${escapeHtml(c.id)}">حذف</button></td></tr>
     `).join('') || '<tr><td colspan="3">لا توجد تصنيفات بعد.</td></tr>';
 
     document.querySelectorAll('.btn-del-cat').forEach(b => b.addEventListener('click', async () => {

@@ -22,15 +22,83 @@
 @push('scripts')
 <script>
   // معرّف المنتج يأتي من رابط Laravel النظيف: /product/{id}
-  window.DIWAN_PRODUCT_ID = "{{ $id }}";
+  window.DIWAN_PRODUCT_ID = @json((int) $id);
 </script>
 <script>
+  /* ---------- معرض صور المنتج: سحب بالإصبع على الجوال، أسهم ومصغّرات على الكمبيوتر ---------- */
+  function galleryHTML(product) {
+    const images = (product.images && product.images.length) ? product.images : (product.image ? [product.image] : []);
+    if (!images.length) {
+      return `<div class="pd-gallery"><div class="pd-slide pd-slide-empty">${Products.placeholderHTML(product.category)}</div></div>`;
+    }
+    const alt = escapeHtml(product.name);
+    const many = images.length > 1;
+    return `
+      <div class="pd-gallery" id="pd-gallery">
+        <div class="pd-stage">
+          <div class="pd-track" id="pd-track" tabindex="0" aria-label="صور المنتج — اسحب للتقليب">
+            ${images.map((src, i) => `
+              <div class="pd-slide" data-index="${i}">
+                <img src="${escapeHtml(src)}" alt="${alt} — صورة ${i + 1}" ${i ? 'loading="lazy"' : ''} draggable="false">
+              </div>`).join('')}
+          </div>
+          ${many ? `
+            <button class="pd-nav pd-prev" type="button" aria-label="الصورة السابقة">›</button>
+            <button class="pd-nav pd-next" type="button" aria-label="الصورة التالية">‹</button>
+            <span class="pd-counter" id="pd-counter">1 / ${images.length}</span>` : ''}
+        </div>
+        ${many ? `
+          <div class="pd-thumbs" id="pd-thumbs">
+            ${images.map((src, i) => `
+              <button class="thumb ${i === 0 ? 'active' : ''}" type="button" data-index="${i}" aria-label="عرض الصورة ${i + 1}">
+                <img src="${escapeHtml(src)}" alt="" loading="lazy">
+              </button>`).join('')}
+          </div>` : ''}
+      </div>`;
+  }
+
+  function initGallery() {
+    const track = document.getElementById('pd-track');
+    if (!track) return;
+    const slides = [...track.querySelectorAll('.pd-slide')];
+    const thumbs = [...document.querySelectorAll('#pd-thumbs .thumb')];
+    const counter = document.getElementById('pd-counter');
+    let current = 0;
+
+    const goTo = (i) => {
+      current = (i + slides.length) % slides.length;
+      // scrollIntoView يتعامل مع اتجاه RTL بشكل صحيح في كل المتصفحات، و nearest يمنع قفز الصفحة عموديًا
+      slides[current].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    };
+
+    const setActive = (i) => {
+      current = i;
+      thumbs.forEach((t, k) => t.classList.toggle('active', k === i));
+      thumbs[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      if (counter) counter.textContent = `${i + 1} / ${slides.length}`;
+    };
+
+    // تحديد الصورة الظاهرة بعد السحب بالإصبع
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(en => { if (en.isIntersecting) setActive(Number(en.target.dataset.index)); });
+    }, { root: track, threshold: 0.6 });
+    slides.forEach(s => io.observe(s));
+
+    thumbs.forEach(t => t.addEventListener('click', () => goTo(Number(t.dataset.index))));
+    document.querySelector('.pd-prev')?.addEventListener('click', () => goTo(current - 1));
+    document.querySelector('.pd-next')?.addEventListener('click', () => goTo(current + 1));
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') goTo(current + 1);   // RTL: اليسار = التالي
+      if (e.key === 'ArrowRight') goTo(current - 1);
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     renderHeader('products');
     renderFooter();
 
     const id = window.DIWAN_PRODUCT_ID;
-    const product = await Products.getById(id);
+    const product = await Products.getDetails(id);
     const wrap = document.getElementById('product-detail-wrap');
 
     if (!product) {
@@ -47,24 +115,21 @@
 
     wrap.innerHTML = `
       <div class="pd-wrap">
-        <div>
-          <div class="pd-gallery-main">🧴</div>
-          <div class="pd-thumbs"><div class="thumb active">🧴</div><div class="thumb">🧴</div><div class="thumb">🧴</div></div>
-        </div>
+        ${galleryHTML(product)}
         <div class="pd-info">
-          <span class="product-cat">${product.categoryName}</span>
-          <h1>${product.name}</h1>
-          <span class="product-rating">${'★'.repeat(Math.round(product.rating))}${'☆'.repeat(5 - Math.round(product.rating))} (${product.rating})</span>
+          <span class="product-cat">${escapeHtml(product.categoryName)}</span>
+          <h1>${escapeHtml(product.name)}</h1>
+          <span class="product-rating">${Products.ratingHTML(product.rating)}</span>
           <div class="pd-price-row">
             <span class="now">${Products.formatPrice(product.price)}</span>
             ${product.oldPrice ? `<span class="old">${Products.formatPrice(product.oldPrice)}</span>` : ''}
             ${discount ? `<span class="badge" style="position:static;">خصم ${discount}%</span>` : ''}
           </div>
           <div class="pd-meta">
-            <span>SKU: ${product.sku}</span>
+            <span>SKU: ${escapeHtml(product.sku)}</span>
             <span class="stock-note ${outOfStock ? 'out' : ''}">${outOfStock ? 'نفد من المخزون' : `متوفر (${product.stock} قطعة)`}</span>
           </div>
-          <p class="pd-desc">${product.desc}</p>
+          <p class="pd-desc">${escapeHtml(product.desc || "")}</p>
           <div class="pd-qty-row">
             <span>الكمية:</span>
             <div class="qty-control">
@@ -82,6 +147,7 @@
       </div>
     `;
 
+    initGallery();
     document.getElementById('wa-inquire-btn').href = WhatsAppLink.productInquiry(product);
 
     const qtyInput = document.getElementById('qty-input');

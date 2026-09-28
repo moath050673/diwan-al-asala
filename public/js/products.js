@@ -4,12 +4,15 @@
    ببيانات حقيقية تُدار من لوحة التحكم (Admin Dashboard) بعد الربط بالـ API.
    =================================================================== */
 
+// أيقونات التصنيفات المعروفة؛ أي تصنيف جديد يُضاف من لوحة التحكم يأخذ الأيقونة الافتراضية
+const CATEGORY_ICONS = { zabad: '🌿', bakhoor: '🔥', perfume: '🧴' };
+const DEFAULT_CATEGORY_ICON = '✨';
+
+// احتياطي فقط عند تعذّر الوصول للـ API — التصنيفات الفعلية تُجلب من /api/categories
 const DIWAN_CATEGORIES = [
-  { id: 1, slug: 'zabad', name: 'الزباد', icon: '🌿' },
-  { id: 2, slug: 'bakhoor', name: 'البخور', icon: '🔥' },
-  { id: 3, slug: 'perfume', name: 'العطور', icon: '🧴' },
-  { id: 4, slug: 'offers', name: 'العروض', icon: '🏷️' },
-  { id: 5, slug: 'new', name: 'المنتجات الجديدة', icon: '✨' },
+  { id: 1, slug: 'zabad', name: 'الزباد' },
+  { id: 2, slug: 'bakhoor', name: 'البخور' },
+  { id: 3, slug: 'perfume', name: 'العطور' },
 ];
 
 // بيانات تجريبية — يمكن حذفها/استبدالها من لوحة التحكم
@@ -27,14 +30,48 @@ const Products = (() => {
 
   async function loadAll() {
     if (cache) return cache;
-    const apiResult = await API.getProducts();
+    // الـ API يُرجع 20 منتجًا افتراضيًا؛ الفلترة هنا تتم في المتصفح لذا نطلب الحد الأقصى (100)
+    const apiResult = await API.getProducts('?limit=100');
     cache = apiResult && apiResult.data ? apiResult.data : DIWAN_PRODUCTS_SEED;
     return cache;
+  }
+
+  let categoriesCache = null;
+
+  // التصنيفات النشطة من قاعدة البيانات (نفس ما يُدار من لوحة التحكم ← التصنيفات)
+  async function loadCategories() {
+    if (categoriesCache) return categoriesCache;
+    const apiResult = await API.getCategories();
+    const list = apiResult && Array.isArray(apiResult.data) ? apiResult.data : DIWAN_CATEGORIES;
+    categoriesCache = list.map(c => ({ ...c, icon: CATEGORY_ICONS[c.slug] || DEFAULT_CATEGORY_ICON }));
+    return categoriesCache;
+  }
+
+  function categoryCardHTML(c) {
+    return `
+      <div class="category-card">
+        <div class="cat-img">${c.icon}</div>
+        <h3>${escapeHtml(c.name)}</h3>
+        <a class="view-link" href="/products?category=${encodeURIComponent(c.slug)}">عرض المنتجات ←</a>
+      </div>`;
   }
 
   async function getById(id) {
     const all = await loadAll();
     return all.find(p => String(p.id) === String(id));
+  }
+
+  // تفاصيل منتج واحد (تشمل الوصف) — قائمة المنتجات لا تحتوي على الوصف
+  async function getDetails(id) {
+    const apiResult = await API.getProduct(id);
+    if (apiResult && apiResult.data) return { ...apiResult.data, desc: apiResult.data.description };
+    return getById(id);
+  }
+
+  function ratingHTML(rating) {
+    if (typeof rating !== 'number') return '';
+    const r = Math.max(0, Math.min(5, Math.round(rating)));
+    return `${'★'.repeat(r)}${'☆'.repeat(5 - r)} <small>(${rating})</small>`;
   }
 
   function filterAndSort(list, { category, q, minPrice, maxPrice, sort } = {}) {
@@ -89,7 +126,9 @@ const Products = (() => {
 
   function productThumbHTML(p) {
     if (p.image) {
-      return `<img src="${p.image}" alt="${p.name}" class="product-thumb-img" loading="lazy" onerror="handleThumbImgError(this,'${p.category}')">`;
+      // القيمة داخل onerror هي كود JavaScript — نسمح فقط بمفاتيح معروفة بدل تهريبها
+      const cat = Object.prototype.hasOwnProperty.call(CATEGORY_PLACEHOLDER_ICONS, p.category) ? p.category : 'default';
+      return `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="product-thumb-img" loading="lazy" onerror="handleThumbImgError(this,'${cat}')">`;
     }
     return placeholderMarkup(p.category);
   }
@@ -97,16 +136,17 @@ const Products = (() => {
   function productCardHTML(p) {
     const discount = p.oldPrice ? Math.round(100 - (p.price / p.oldPrice) * 100) : null;
     const outOfStock = p.stock <= 0;
+    const id = encodeURIComponent(p.id);
     return `
-    <div class="product-card" data-id="${p.id}">
+    <div class="product-card" data-id="${id}">
       ${discount ? `<span class="badge">خصم ${discount}%</span>` : ''}
       ${outOfStock ? `<span class="badge-out">نفد المخزون</span>` : ''}
-      <a href="/product/${p.id}" class="product-thumb">${productThumbHTML(p)}</a>
-      <button class="fav-btn" data-fav="${p.id}" aria-label="أضف للمفضلة">♡</button>
+      <a href="/product/${id}" class="product-thumb">${productThumbHTML(p)}</a>
+      <button class="fav-btn" data-fav="${id}" aria-label="أضف للمفضلة">♡</button>
       <div class="product-body">
-        <span class="product-cat">${p.categoryName}</span>
-        <a href="/product/${p.id}"><h3 class="product-name">${p.name}</h3></a>
-        <span class="product-rating">${'★'.repeat(Math.round(p.rating))}${'☆'.repeat(5 - Math.round(p.rating))} <small>(${p.rating})</small></span>
+        <span class="product-cat">${escapeHtml(p.categoryName)}</span>
+        <a href="/product/${id}"><h3 class="product-name">${escapeHtml(p.name)}</h3></a>
+        <span class="product-rating">${ratingHTML(p.rating)}</span>
         <div class="product-price">
           <span class="price-now">${formatPrice(p.price)}</span>
           ${p.oldPrice ? `<span class="price-old">${formatPrice(p.oldPrice)}</span>` : ''}
@@ -114,11 +154,11 @@ const Products = (() => {
         <span class="stock-note ${outOfStock ? 'out' : ''}">${outOfStock ? 'نفد من المخزون' : 'متوفر في المخزون'}</span>
       </div>
       <div class="product-actions">
-        <button class="btn btn-primary btn-add-cart" data-id="${p.id}" ${outOfStock ? 'disabled' : ''}>أضف إلى السلة</button>
-        <button class="btn btn-whatsapp btn-wa-inquire" data-id="${p.id}">واتساب</button>
+        <button class="btn btn-primary btn-add-cart" data-id="${id}" ${outOfStock ? 'disabled' : ''}>أضف إلى السلة</button>
+        <button class="btn btn-whatsapp btn-wa-inquire" data-id="${id}">واتساب</button>
       </div>
     </div>`;
   }
 
-  return { loadAll, getById, filterAndSort, formatPrice, productCardHTML, categories: DIWAN_CATEGORIES };
+  return { loadAll, loadCategories, categoryCardHTML, getById, getDetails, ratingHTML, filterAndSort, formatPrice, productCardHTML, placeholderHTML: placeholderMarkup };
 })();

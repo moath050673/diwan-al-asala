@@ -8,16 +8,11 @@
 @endsection
 @push('scripts')
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     renderHeader('categories');
     renderFooter();
-    document.getElementById('categories-grid').innerHTML = Products.categories.map(c => `
-      <div class="category-card">
-        <div class="cat-img">${c.icon}</div>
-        <h3>${c.name}</h3>
-        <a class="view-link" href="/products?category=${c.slug}">عرض المنتجات ←</a>
-      </div>
-    `).join('');
+    const categories = await Products.loadCategories();
+    document.getElementById('categories-grid').innerHTML = categories.map(Products.categoryCardHTML).join('');
   });
 </script>
 @endpush

@@ -11,7 +11,9 @@ const WhatsAppLink = (() => {
   }
 
   function buildLink(message) {
-    const number = getStoreNumber().replace(/\D/g, '');
+    let number = getStoreNumber().replace(/\D/g, '').replace(/^00/, '');
+    // wa.me يتطلب الصيغة الدولية: رقم جوال يمني محلي (9 أرقام يبدأ بـ 7) → نضيف 967
+    if (/^7\d{8}$/.test(number)) number = '967' + number;
     return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
   }
 

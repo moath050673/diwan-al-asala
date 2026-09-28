@@ -9,8 +9,19 @@ class Order extends Model
     protected $fillable = [
         'order_number', 'customer_id', 'subtotal', 'shipping_cost', 'discount', 'total',
         'payment_method', 'payment_status', 'order_status',
-        'customer_name', 'customer_phone', 'customer_address', 'notes',
+        'customer_name', 'customer_phone', 'customer_address', 'notes', 'stock_released_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'subtotal' => 'decimal:2',
+            'shipping_cost' => 'decimal:2',
+            'discount' => 'decimal:2',
+            'total' => 'decimal:2',
+            'stock_released_at' => 'datetime',
+        ];
+    }
 
     public function customer()
     {

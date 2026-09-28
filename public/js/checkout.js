@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const t = Cart.totals(items, shipping);
 
   listEl.innerHTML = items.map(i => `
-    <div class="summary-row"><span>${i.name} × ${i.qty}</span><span>${Products.formatPrice(i.price * i.qty)}</span></div>
+    <div class="summary-row"><span>${escapeHtml(i.name)} × ${escapeHtml(i.qty)}</span><span>${Products.formatPrice(i.price * i.qty)}</span></div>
   `).join('');
 
   totalsEl.innerHTML = `
@@ -34,32 +34,57 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="summary-row total"><span>الإجمالي النهائي</span><span>${Products.formatPrice(t.total)}</span></div>
   `;
 
-      // ---------- تحميل بيانات حسابات جيب وكريمي الحقيقية من الإعدادات ----------
-  (async () => {
-    try {
-      const res = await fetch((window.DIWAN_API_BASE || '/api') + '/payments/settings');
-      const json = await res.json();
-      const d = (json && json.data) || {};
-      const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || 'غير متوفر حاليًا'; };
-      setText('jib-account-name', d.jib_account_name);
-      setText('jib-account-number', d.jib_account_number);
-      setText('kareemi-account-name', d.kareemi_account_name);
-      setText('kareemi-account-number', d.kareemi_account_number);
-    } catch (e) {
-      console.warn('تعذّر تحميل بيانات حسابات الدفع', e);
+  // بيانات حسابات جيب وكريمي مكتوبة في الصفحة من الخادم (PageController::checkout)
+
+  /**
+   * نسخ نص إلى الحافظة. navigator.clipboard يعمل فقط على HTTPS أو localhost،
+   * لذلك على الجوال عبر http://192.168.x.x نستخدم الطريقة القديمة (execCommand).
+   */
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* نجرب الطريقة البديلة */ }
     }
-  })();
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed; top:0; left:0; opacity:0; font-size:16px;'; // 16px يمنع تكبير iOS
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    ta.remove();
+    return ok;
+  }
 
   document.querySelectorAll('.btn-copy-number').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const text = document.getElementById(btn.dataset.target).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        const old = btn.textContent;
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();   // الزر داخل <label> — نمنع تغيير طريقة الدفع عند الضغط عليه
+      e.stopPropagation();
+      const target = document.getElementById(btn.dataset.target);
+      const text = target.textContent.trim().replace(/\s+/g, '');
+      const old = btn.dataset.label || (btn.dataset.label = btn.textContent);
+      if (await copyText(text)) {
         btn.textContent = 'تم النسخ ✓';
-        setTimeout(() => { btn.textContent = old; }, 1500);
-      });
+        btn.classList.add('copied');
+      } else {
+        // آخر حل: تحديد الرقم ليضغط العميل مطولًا ويختار "نسخ"
+        const range = document.createRange();
+        range.selectNodeContents(target);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        btn.textContent = 'اضغط مطولًا على الرقم للنسخ';
+      }
+      setTimeout(() => { btn.textContent = old; btn.classList.remove('copied'); }, 2200);
     });
   });
+
+  // إذا كان "الدفع عند الاستلام" معطّلًا من لوحة التحكم، نختار أول طريقة متاحة
+  if (!document.querySelector('.payment-option input:checked')) {
+    const first = document.querySelector('.payment-option');
+    if (first) setTimeout(() => first.click()); // بعد ربط معالج التبديل أدناه (يُظهر حقل الإيصال إن لزم)
+  }
 
 
   // ---------- Payment method switching ----------
@@ -103,24 +128,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const result = await API.createOrder(fd);
 
-    // Fallback محلي عند عدم توفر Backend فعلي أثناء المعاينة
-    const order = result && result.data ? result.data : {
-      orderNumber: Math.floor(10000 + Math.random() * 89999),
-      items, total: t.total,
-      customerName: rawFd.get('name'),
-      customerPhone: rawFd.get('phone'),
-      customerAddress: `${rawFd.get('city')} - ${rawFd.get('area')} - ${rawFd.get('address')}`,
-      paymentMethodLabel: paymentLabel(rawFd.get('paymentMethod')),
-    };
+    // لا نعرض صفحة نجاح إلا إذا حفظ الخادم الطلب فعلًا — في حالة الخطأ (نفاد المخزون،
+    // بيانات ناقصة، انقطاع الاتصال) تبقى السلة كما هي ويرى العميل سبب المشكلة.
+    if (!result.ok || !result.data || !result.data.data) {
+      showToast(API.errorMessage(result, 'تعذّر إرسال الطلب، يرجى المحاولة مجددًا أو التواصل معنا عبر واتساب.'), 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'تأكيد الطلب';
+      return;
+    }
 
-    localStorage.setItem('diwan_last_order', JSON.stringify(order));
+    localStorage.setItem('diwan_last_order', JSON.stringify(result.data.data));
     Cart.clear();
     window.location.href = '/order-success';
   });
-
-  function paymentLabel(method) {
-    return { cod: 'الدفع عند الاستلام', jib: 'جيب JIB', kareemi: 'كريمي Kareemi' }[method] || method;
-  }
 
   // ---------- Send cart summary via WhatsApp button ----------
   document.getElementById('wa-send-cart')?.addEventListener('click', () => {

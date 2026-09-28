@@ -3,10 +3,10 @@
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => [env('FRONTEND_URL', '*')],
+    'allowed_origins' => [env('FRONTEND_URL', env('APP_URL', 'http://localhost'))],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
-    'supports_credentials' => true,
+    'supports_credentials' => false, // لوحة التحكم تستخدم Bearer token وليس الكوكيز
 ];
