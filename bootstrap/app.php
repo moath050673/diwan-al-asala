@@ -17,6 +17,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        // الاستضافة (Laravel Cloud) تمرر الطلبات عبر موازن أحمال: بدون هذا يُعامل كل العملاء
+        // كأنهم IP واحد (فيشتركون في حد الطلبات)، ولا يُكتشف أن الاتصال HTTPS.
+        $middleware->trustProxies(at: '*');
         // لا يوجد مسار باسم login — بدون هذا يسبب أي طلب API غير مسجّل خطأ 500 بدل 401
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/admin');
         $middleware->alias([

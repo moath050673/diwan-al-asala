@@ -21,7 +21,8 @@ class ProductImageStorage
     /** يحفظ الصورة ويعيد الرابط الذي يُخزَّن في product_images.image_url */
     public function store(UploadedFile $file): string
     {
-        $path = $file->store('products', ['disk' => $this->disk(), 'visibility' => 'public']);
+        // بدون visibility لكل ملف: Laravel Cloud (Cloudflare R2) يرفضها — الظهور العام يُحدَّد عند إنشاء الـ Bucket
+        $path = $file->store('products', $this->disk());
 
         // على القرص المحلي نُبقي الرابط نسبيًا ليعمل من أي عنوان (localhost، IP الجوال، الدومين)
         return $this->disk() === 'public' ? '/storage/'.$path : Storage::disk($this->disk())->url($path);

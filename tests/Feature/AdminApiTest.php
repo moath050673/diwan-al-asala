@@ -51,6 +51,16 @@ class AdminApiTest extends TestCase
         $this->assertSame('0', Setting::get('jib_enabled'));
     }
 
+    public function test_settings_cache_works_with_database_store()
+    {
+        config(['cache.default' => 'database']); // كما على الاستضافة
+        Setting::set('shipping_cost_sanaa', '1000');
+        $this->assertSame('1000', Setting::get('shipping_cost_sanaa'));
+
+        $this->actingAsRole('admin')->putJson('/api/settings', ['shipping_cost_sanaa' => 1500])->assertOk();
+        $this->assertSame('1500', Setting::get('shipping_cost_sanaa'));
+    }
+
     public function test_staff_cannot_update_settings()
     {
         $this->actingAsRole('staff')->putJson('/api/settings', ['store_name' => 'X'])->assertForbidden();
