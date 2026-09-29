@@ -137,14 +137,16 @@
 
 @push('scripts')
 <script>
-  // مشهد الخلفية ثلاثي الأبعاد (three.js ~150KB) زخرفة فقط: نحمّله بدون أن يؤخر الهيدر
-  // والمنتجات — السكربتات المضافة ديناميكيًا لا تؤخر DOMContentLoaded، و async=false يحفظ ترتيبها.
-  // حتى يكتمل التحميل تبقى المبخرة ودخانها (SVG) ظاهرة كما هي.
-  ['/js/vendor/three.min.js', @json(\App\Support\Asset::url('/js/hero-scene.js'))].forEach((src) => {
-    const s = document.createElement('script');
-    s.src = src;
-    s.async = false;
-    document.body.appendChild(s);
+  // مشهد الخلفية ثلاثي الأبعاد (three.js ~150KB) زخرفة فقط: نحمّله بعد اكتمال تحميل الصفحة
+  // حتى لا ينافس الخطوط وCSS والمنتجات على سرعة الاتصال (أول ظهور للصفحة أسرع خاصة على الجوال).
+  // حتى يكتمل تبقى المبخرة ودخانها (SVG) ظاهرة كما هي. async=false يحفظ ترتيب السكربتين.
+  window.addEventListener('load', () => {
+    ['/js/vendor/three.min.js', @json(\App\Support\Asset::url('/js/hero-scene.js'))].forEach((src) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = false;
+      document.body.appendChild(s);
+    });
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
