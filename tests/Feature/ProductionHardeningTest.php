@@ -277,6 +277,24 @@ class ProductionHardeningTest extends TestCase
         Cache::store('file')->flush();
     }
 
+    public function test_production_stores_uploads_in_database_by_default()
+    {
+        $original = [$_SERVER['APP_ENV'] ?? null, $_ENV['APP_ENV'] ?? null];
+        $_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = 'production';
+        putenv('APP_ENV=production');
+
+        try {
+            $config = require config_path('store.php');
+        } finally {
+            [$_SERVER['APP_ENV'], $_ENV['APP_ENV']] = $original;
+            putenv('APP_ENV='.$original[0]);
+        }
+
+        // cloud hosts wipe the server disk on every deploy — never default to it in production
+        $this->assertSame('db_public', $config['disks']['images']);
+        $this->assertSame('db_private', $config['disks']['receipts']);
+    }
+
     public function test_health_command_runs()
     {
         $this->artisan('app:health')->assertFailed(); // no admin account yet

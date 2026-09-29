@@ -33,9 +33,11 @@ return [
     // - محليًا: public / local (الافتراضي)
     // - Laravel Cloud Starter (ملفات السيرفر تُمسح مع كل نشر/سبات): db_public / db_private
     // - لاحقًا مع Object Storage أو S3: اسم قرص الـ Bucket — بدون أي تعديل في الكود
+    // الافتراضي في الإنتاج: قاعدة البيانات — ملفات السيرفر على الاستضافات السحابية تُمسح مع كل نشر،
+    // فلا نعتمد على تذكّر ضبط المتغيرات يدويًا حتى لا تضيع الصور والإيصالات.
     'disks' => [
-        'images' => env('PRODUCT_IMAGES_DISK', 'public'),   // صور المنتجات (عامة)
-        'receipts' => env('RECEIPTS_DISK', 'local'),        // إيصالات الدفع (خاصة — للمدير فقط)
+        'images' => env('PRODUCT_IMAGES_DISK') ?: (env('APP_ENV') === 'production' ? 'db_public' : 'public'),   // صور المنتجات (عامة)
+        'receipts' => env('RECEIPTS_DISK') ?: (env('APP_ENV') === 'production' ? 'db_private' : 'local'),       // إيصالات الدفع (خاصة — للمدير فقط)
     ],
 
     // إشعارات الطلبات الجديدة عبر Telegram (يمكن وضع أكثر من chat_id مفصولة بفاصلة)

@@ -76,8 +76,12 @@ class HealthCheck extends Command
             }
         }
         $ephemeral = $production && in_array(config('store.disks.images'), ['public', 'local'], true);
-        $this->check('Uploads survive redeploys', $ephemeral ? 'warn' : 'ok', $ephemeral ? 'local disk on cloud hosting is wiped on deploy — use db_public/db_private' : 'yes');
-        if (config('store.disks.images') === 'public') {
+        $ephemeral = $ephemeral || ($production && in_array(config('store.disks.receipts'), ['public', 'local'], true));
+        $this->check('Uploads survive redeploys', $ephemeral ? 'fail' : 'ok', $ephemeral
+            ? 'server disk is wiped on every deploy — remove PRODUCT_IMAGES_DISK/RECEIPTS_DISK or set db_public/db_private'
+            : config('store.disks.images').' / '.config('store.disks.receipts'));
+        // الرابط مطلوب فقط عند حفظ الصور على القرص المحلي (التطوير)
+        if (config('store.disks.images') === 'public' && !$production) {
             $this->check('storage:link', file_exists(public_path('storage')) ? 'ok' : 'fail', 'public/storage');
         }
         $this->check('Image optimization (GD)', $images->available() ? 'ok' : 'warn', $images->available() ? ($images->supportsWebp() ? 'GD + WebP' : 'GD (no WebP)') : 'GD missing — originals are stored unoptimized');

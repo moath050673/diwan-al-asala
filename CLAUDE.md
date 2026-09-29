@@ -62,8 +62,9 @@ Laravel 12, PHP 8.2+, MySQL/MariaDB. Deployed on Laravel Cloud (Starter plan).
   (`RECEIPTS_DISK`).
 - Local development: `public` (images, needs `php artisan storage:link`) and `local`
   (receipts, private).
-- Laravel Cloud Starter (no object storage, ephemeral filesystem): `db_public` / `db_private`
-  (files stored in MySQL). Later: set these to an S3/bucket disk name.
+- Production default (APP_ENV=production, no env var needed): `db_public` / `db_private`
+  (files stored in MySQL) — Laravel Cloud's filesystem is wiped on every deploy, so no
+  `storage:link`/`public` disk in production. Later: set these to an S3/bucket disk name.
 - Payment receipts are private — only admin/staff can read them via
   `/api/payments/{id}/receipt`. Never expose them on a public URL.
 - Do not pass `visibility` when storing files (Cloudflare R2 rejects it).
