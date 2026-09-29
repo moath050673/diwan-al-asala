@@ -19,10 +19,10 @@ class ProductController extends Controller
     {
         $query = Product::query()->active()->with(['category', 'images']);
 
-        if ($category = $request->query('category')) {
+        if ($category = $this->queryText($request, 'category')) {
             $query->whereHas('category', fn ($q) => $q->where('slug', $category));
         }
-        if ($q = $request->query('q')) {
+        if ($q = $this->queryText($request, 'q')) {
             $query->where(function ($sub) use ($q) {
                 $sub->where('name', 'like', "%{$q}%")
                     ->orWhere('sku', 'like', "%{$q}%")
@@ -96,7 +96,7 @@ class ProductController extends Controller
     public function adminIndex(Request $request)
     {
         $query = Product::with(['category', 'images'])->orderBy('status')->orderByDesc('id');
-        if ($q = $request->query('q')) {
+        if ($q = $this->queryText($request, 'q')) {
             $query->where(fn ($sub) => $sub->where('name', 'like', "%{$q}%")->orWhere('sku', 'like', "%{$q}%"));
         }
 

@@ -47,25 +47,25 @@ function renderHeader(activePage = '') {
         <a href="/contact" class="${activePage === 'contact' ? 'active' : ''}">تواصل معنا</a>
       </nav>
       <div class="search-bar">
-        <span>🔍</span>
-        <input type="text" id="global-search" placeholder="ابحث عن عطر، بخور، زباد..." />
+        <span aria-hidden="true">🔍</span>
+        <input type="text" id="global-search" placeholder="ابحث عن عطر، بخور، زباد..." aria-label="ابحث في المتجر" enterkeyhint="search" />
       </div>
       <div class="header-actions">
         <a class="icon-btn" href="${WhatsAppLink.general()}" target="_blank" rel="noopener" aria-label="واتساب">
-          <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.87.5 3.6 1.4 5.1L2 22l5.15-1.5a9.9 9.9 0 0 0 4.9 1.28c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.05c-1.6 0-3.1-.44-4.4-1.2l-.31-.18-3.06.9.9-2.98-.2-.32a8.16 8.16 0 0 1-1.24-4.36c0-4.53 3.7-8.23 8.3-8.23 4.6 0 8.3 3.7 8.3 8.23 0 4.53-3.7 8.14-8.3 8.14Z"/></svg>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.87.5 3.6 1.4 5.1L2 22l5.15-1.5a9.9 9.9 0 0 0 4.9 1.28c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.05c-1.6 0-3.1-.44-4.4-1.2l-.31-.18-3.06.9.9-2.98-.2-.32a8.16 8.16 0 0 1-1.24-4.36c0-4.53 3.7-8.23 8.3-8.23 4.6 0 8.3 3.7 8.3 8.23 0 4.53-3.7 8.14-8.3 8.14Z"/></svg>
         </a>
         <a class="icon-btn" href="/cart" aria-label="السلة">
-          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L22 7H6"/><circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg>
-          <span class="cart-count">0</span>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L22 7H6"/><circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg>
+          <span class="cart-count" aria-hidden="true">0</span>
         </a>
-        <button class="hamburger" id="hamburger-btn" aria-label="القائمة">
+        <button class="hamburger" id="hamburger-btn" type="button" aria-label="القائمة" aria-expanded="false" aria-controls="mobile-nav">
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
     <div class="mobile-nav-overlay" id="mobile-overlay"></div>
-    <nav class="mobile-nav" id="mobile-nav">
-      <div class="mobile-close" id="mobile-close">✕</div>
+    <nav class="mobile-nav" id="mobile-nav" aria-label="القائمة">
+      <button type="button" class="mobile-close" id="mobile-close" aria-label="إغلاق القائمة">✕</button>
       <a href="/">الرئيسية</a>
       <a href="/products">المنتجات</a>
       <a href="/categories">التصنيفات</a>
@@ -80,15 +80,23 @@ function renderHeader(activePage = '') {
   const mobileNav = document.getElementById('mobile-nav');
   const overlay = document.getElementById('mobile-overlay');
   const closeBtn = document.getElementById('mobile-close');
-  const openMenu = () => { mobileNav.classList.add('open'); overlay.classList.add('open'); };
-  const closeMenu = () => { mobileNav.classList.remove('open'); overlay.classList.remove('open'); };
+  const openMenu = () => {
+    mobileNav.classList.add('open'); overlay.classList.add('open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    closeBtn.focus();
+  };
+  const closeMenu = () => {
+    if (!mobileNav.classList.contains('open')) return;
+    mobileNav.classList.remove('open'); overlay.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    hamburger.focus();
+  };
   hamburger?.addEventListener('click', openMenu);
   overlay?.addEventListener('click', closeMenu);
   closeBtn?.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
 
-  // زر إخفاء/إظهار القائمة الرئيسية على شاشات الكمبيوتر (بناءً على طلب مباشر،
-  // رغم أن إبقاءها ظاهرة دائمًا هو المعتاد في أغلب المواقع). نحفظ التفضيل
-  // في المتصفح حتى يبقى نفس الاختيار عند التنقل بين الصفحات.
+  // البحث من الهيدر ينقل لصفحة المنتجات مع كلمة البحث
   const searchInput = document.getElementById('global-search');
   searchInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && searchInput.value.trim()) {
@@ -103,6 +111,9 @@ function renderFooter() {
   const el = document.getElementById('site-footer');
   if (!el) return;
   const s = window.DIWAN_SETTINGS;
+  // روابط التواصل الاجتماعي تظهر فقط بعد ضبطها من لوحة التحكم (لا روابط لصفحة فيسبوك الرئيسية)
+  const social = (url, label, icon) => isSocialConfigured(url)
+    ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" aria-label="${label}">${icon}</a>` : '';
   el.innerHTML = `
     <div class="container footer-grid">
       <div class="footer-col">
@@ -110,14 +121,10 @@ function renderFooter() {
         <p>العطور | البخور | الزباد</p>
         <p>متجر متخصص في تقديم منتجات أصيلة ذات جودة عالية لعملائنا في صنعاء واليمن.</p>
         <div class="social-icons">
-          <a href="${escapeHtml(s.facebookUrl)}" target="_blank" rel="noopener" aria-label="فيسبوك">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34V22c4.78-.79 8.44-4.94 8.44-9.94Z"/></svg>
-          </a>
-          <a href="${escapeHtml(s.instagramUrl)}" target="_blank" rel="noopener" aria-label="انستقرام">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>
-          </a>
+          ${social(s.facebookUrl, 'فيسبوك', `<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.9h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.87h2.78l-.44 2.9h-2.34V22c4.78-.79 8.44-4.94 8.44-9.94Z"/></svg>`)}
+          ${social(s.instagramUrl, 'انستقرام', `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>`)}
           <a href="${WhatsAppLink.general()}" target="_blank" rel="noopener" aria-label="واتساب">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.87.5 3.6 1.4 5.1L2 22l5.15-1.5a9.9 9.9 0 0 0 4.9 1.28c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.05c-1.6 0-3.1-.44-4.4-1.2l-.31-.18-3.06.9.9-2.98-.2-.32a8.16 8.16 0 0 1-1.24-4.36c0-4.53 3.7-8.23 8.3-8.23 4.6 0 8.3 3.7 8.3 8.23 0 4.53-3.7 8.14-8.3 8.14Z"/></svg>
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.87.5 3.6 1.4 5.1L2 22l5.15-1.5a9.9 9.9 0 0 0 4.9 1.28c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.05c-1.6 0-3.1-.44-4.4-1.2l-.31-.18-3.06.9.9-2.98-.2-.32a8.16 8.16 0 0 1-1.24-4.36c0-4.53 3.7-8.23 8.3-8.23 4.6 0 8.3 3.7 8.3 8.23 0 4.53-3.7 8.14-8.3 8.14Z"/></svg>
           </a>
         </div>
       </div>
@@ -144,6 +151,12 @@ function renderFooter() {
   `;
 }
 
+/** رابط تواصل اجتماعي مضبوط فعلًا (وليس الصفحة الرئيسية لفيسبوك/انستقرام الافتراضية) */
+function isSocialConfigured(url) {
+  if (!url || !/^https?:\/\//i.test(url)) return false;
+  try { return new URL(url).pathname.replace(/\/+$/, '') !== ''; } catch { return false; }
+}
+
 function renderWhatsAppFloat() {
   const el = document.getElementById('whatsapp-float');
   if (!el) return;
@@ -158,6 +171,8 @@ function showToast(message, type = 'success') {
   if (!wrap) {
     wrap = document.createElement('div');
     wrap.className = 'toast-wrap';
+    wrap.setAttribute('role', 'status'); // قارئات الشاشة تقرأ الرسالة تلقائيًا
+    wrap.setAttribute('aria-live', 'polite');
     document.body.appendChild(wrap);
   }
   const toast = document.createElement('div');

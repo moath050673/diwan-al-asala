@@ -39,6 +39,11 @@ class PageController extends Controller
             'seoDescription' => $description,
             'seoImage' => $imageUrl,
             'productSchema' => $this->productSchema($product, $description, $imageUrl),
+            'breadcrumbSchema' => $this->breadcrumbSchema([
+                ['الرئيسية', route('home')],
+                ['المنتجات', route('products')],
+                [$product->name, route('product', $product->id)],
+            ]),
         ]);
     }
 
@@ -92,6 +97,21 @@ class PageController extends Controller
                 'itemCondition' => 'https://schema.org/NewCondition',
             ],
         ]);
+    }
+
+    /** مسار الصفحة (الرئيسية › المنتجات › المنتج) — يظهر في نتائج Google بدل الرابط */
+    private function breadcrumbSchema(array $items): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => collect($items)->values()->map(fn ($item, $i) => [
+                '@type' => 'ListItem',
+                'position' => $i + 1,
+                'name' => $item[0],
+                'item' => $item[1],
+            ])->all(),
+        ];
     }
 
     private function storeSchema(): array

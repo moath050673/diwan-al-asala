@@ -277,6 +277,66 @@ class ProductionHardeningTest extends TestCase
         Cache::store('file')->flush();
     }
 
+    // ---------- Final review ----------
+
+    public function test_initial_password_must_be_changed_before_using_admin_api()
+    {
+        $user = $this->user();
+        $user->update(['must_change_password' => true]);
+        $token = $user->createToken('t')->plainTextToken;
+
+        $this->withToken($token)->getJson('/api/orders')->assertForbidden()->assertJsonPath('code', 'password_change_required');
+        $this->withToken($token)->getJson('/api/auth/me')->assertOk();
+
+        $this->withToken($token)->postJson('/api/auth/change-password', ['currentPassword' => 'secret12345', 'newPassword' => 'NewStrongPass2026'])->assertOk();
+        $this->withToken($token)->getJson('/api/orders')->assertOk();
+    }
+
+    public function test_array_query_parameters_do_not_cause_server_errors()
+    {
+        $this->product();
+        $admin = $this->user()->createToken('t')->plainTextToken;
+
+        $this->getJson('/api/products?q[]=x&category[]=y')->assertOk();
+        $this->getJson('/api/products?q='.str_repeat('ب', 500))->assertOk();
+        $this->withToken($admin)->getJson('/api/admin/products?q[]=x')->assertOk();
+        $this->withToken($admin)->getJson('/api/customers?q[]=x')->assertOk();
+        $this->withToken($admin)->getJson('/api/orders?status[]=x')->assertOk();
+    }
+
+    public function test_phone_numbers_must_look_like_phone_numbers()
+    {
+        $this->postJson('/api/contact', ['name' => 'A', 'phone' => 'call me maybe', 'message' => 'hi'])
+            ->assertStatus(422)->assertJsonValidationErrors('phone');
+        $this->postJson('/api/contact', ['name' => 'A', 'phone' => '+967 777-123-456', 'message' => 'hi'])->assertCreated();
+    }
+
+    public function test_public_api_is_cacheable_for_a_minute_with_etag()
+    {
+        $this->product();
+        $res = $this->getJson('/api/products')->assertOk();
+
+        $this->assertStringContainsString('max-age=60', $res->headers->get('Cache-Control'));
+        $this->assertStringContainsString('public', $res->headers->get('Cache-Control'));
+        $etag = $res->headers->get('ETag');
+        $this->assertNotEmpty($etag);
+
+        $this->getJson('/api/products', ['If-None-Match' => $etag])->assertStatus(304);
+    }
+
+    public function test_product_page_has_breadcrumb_schema_and_versioned_assets()
+    {
+        $product = $this->product();
+
+        $this->get("/product/{$product->id}")->assertOk()
+            ->assertSee('"@type":"BreadcrumbList"', false)
+            ->assertSee('"position":3', false)
+            ->assertSee('/css/style.css?v=', false)
+            ->assertSee('/js/app.js?v=', false)
+            ->assertSee('<main id="main-content"', false)
+            ->assertSee('class="skip-link"', false);
+    }
+
     public function test_production_stores_uploads_in_database_by_default()
     {
         $original = [$_SERVER['APP_ENV'] ?? null, $_ENV['APP_ENV'] ?? null];

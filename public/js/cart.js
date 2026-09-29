@@ -13,7 +13,9 @@ const Cart = (() => {
   }
 
   function save(items) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch (e) { /* التخزين ممتلئ أو معطّل (وضع التصفح الخاص) — السلة تبقى للصفحة الحالية فقط */ }
     updateCartCountBadge();
   }
 
@@ -25,11 +27,40 @@ const Cart = (() => {
     } else {
       items.push({
         id: product.id, name: product.name, price: product.price,
-        image: product.image || null, qty
+        image: product.thumb || product.image || null, qty
       });
     }
     save(items);
     return items;
+  }
+
+  /**
+   * يحدّث السلة من بيانات المتجر الحالية: الاسم والسعر والصورة، ويحذف المنتجات
+   * التي لم تعد متاحة. السعر النهائي يحسبه الخادم دائمًا — هذا فقط حتى يرى العميل
+   * نفس الأرقام التي سيُحاسب عليها.
+   * @returns {Promise<{items: Array, removed: string[], changed: boolean}>}
+   */
+  async function syncWithStore() {
+    const items = getAll();
+    if (!items.length) return { items, removed: [], changed: false };
+
+    const products = await Products.loadAll();
+    if (Products.loadFailed()) return { items, removed: [], changed: false }; // لا نحذف شيئًا بدون بيانات مؤكدة
+
+    const byId = new Map(products.map(p => [String(p.id), p]));
+    const removed = [];
+    let changed = false;
+    const next = [];
+    for (const item of items) {
+      const p = byId.get(String(item.id));
+      if (!p) { removed.push(item.name); continue; }
+      const updated = { ...item, name: p.name, price: p.price, image: p.thumb || p.image || null };
+      if (updated.name !== item.name || updated.price !== item.price || updated.image !== item.image) changed = true;
+      next.push(updated);
+    }
+    if (removed.length || changed) save(next);
+
+    return { items: next, removed, changed };
   }
 
   function updateQty(id, qty) {
@@ -63,5 +94,11 @@ const Cart = (() => {
 
   document.addEventListener('DOMContentLoaded', updateCartCountBadge);
 
-  return { getAll, add, updateQty, remove, clear, totals, updateCartCountBadge };
+  /** رسالة للعميل إن تغيّرت السلة بعد المزامنة */
+  function syncNotice({ removed, changed }) {
+    if (removed.length) showToast(`لم يعد متاحًا وتمت إزالته من السلة: ${removed.join('، ')}`, 'error');
+    else if (changed) showToast('تم تحديث أسعار السلة حسب أحدث أسعار المتجر', 'success');
+  }
+
+  return { getAll, add, updateQty, remove, clear, totals, updateCartCountBadge, syncWithStore, syncNotice };
 })();

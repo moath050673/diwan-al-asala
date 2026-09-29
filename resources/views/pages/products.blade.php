@@ -15,17 +15,17 @@
   <div class="container">
     <div class="filters-bar">
       <div class="filter-group">
-        <label>بحث</label>
+        <label for="f-search">بحث</label>
         <input type="text" id="f-search" placeholder="اسم المنتج، SKU...">
       </div>
       <div class="filter-group">
-        <label>التصنيف</label>
+        <label for="f-category">التصنيف</label>
         <select id="f-category"><option value="">جميع التصنيفات</option></select>
       </div>
-      <div class="filter-group"><label>السعر من</label><input type="number" id="f-min" placeholder="0"></div>
-      <div class="filter-group"><label>السعر إلى</label><input type="number" id="f-max" placeholder="أي سعر"></div>
+      <div class="filter-group"><label for="f-min">السعر من</label><input type="number" id="f-min" placeholder="0" min="0" inputmode="numeric"></div>
+      <div class="filter-group"><label for="f-max">السعر إلى</label><input type="number" id="f-max" placeholder="أي سعر" min="0" inputmode="numeric"></div>
       <div class="filter-group">
-        <label>الترتيب</label>
+        <label for="f-sort">الترتيب</label>
         <select id="f-sort">
           <option value="">الافتراضي</option>
           <option value="newest">الأحدث</option>
@@ -33,7 +33,7 @@
           <option value="price_desc">السعر: الأعلى أولًا</option>
         </select>
       </div>
-      <span class="results-count" id="results-count"></span>
+      <span class="results-count" id="results-count" aria-live="polite"></span>
     </div>
     <div class="products-grid" id="products-list"></div>
   </div>
@@ -53,6 +53,11 @@
       maxPrice: document.getElementById('f-max').value,
       sort: document.getElementById('f-sort').value,
     };
+    if (Products.loadFailed()) {
+      document.getElementById('results-count').textContent = '';
+      document.getElementById('products-list').innerHTML = Products.errorHTML();
+      return;
+    }
     const filtered = Products.filterAndSort(ALL_PRODUCTS, filters);
     document.getElementById('results-count').textContent = `${filtered.length} منتج`;
     document.getElementById('products-list').innerHTML = filtered.length
@@ -65,13 +70,14 @@
     renderFooter();
 
     const catSelect = document.getElementById('f-category');
-    (await Products.loadCategories()).forEach(c => {
+    const [categories, products] = await Promise.all([Products.loadCategories(), Products.loadAll()]);
+    categories.forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.slug; opt.textContent = c.name;
       catSelect.appendChild(opt);
     });
 
-    ALL_PRODUCTS = await Products.loadAll();
+    ALL_PRODUCTS = products;
 
     const params = getQueryParams();
     if (params.category) catSelect.value = params.category;

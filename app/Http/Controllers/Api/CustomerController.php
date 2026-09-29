@@ -22,7 +22,7 @@ class CustomerController extends Controller
             ->select('customers.*')
             ->selectRaw('COALESCE(order_stats.ordersCount, 0) as ordersCount, COALESCE(order_stats.lifetimeValue, 0) as lifetimeValue');
 
-        if ($q = $request->query('q')) {
+        if ($q = $this->queryText($request, 'q')) {
             $query->where(fn ($sub) => $sub->where('customers.name', 'like', "%{$q}%")->orWhere('customers.phone', 'like', "%{$q}%"));
         }
 

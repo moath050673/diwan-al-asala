@@ -100,7 +100,7 @@
 .mobile-nav a { display: block; color: var(--color-text); font-size: 18px; padding: 14px 0; border-bottom: 1px solid var(--color-border); }
 .mobile-nav-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .6); z-index: 299; display: none; }
 .mobile-nav-overlay.open { display: block; }
-.mobile-close { text-align: left; color: var(--color-primary); font-size: 26px; margin-bottom: 10px; }
+.mobile-close { display: block; width: 100%; line-height: inherit; text-align: left; color: var(--color-primary); font-size: 26px; margin-bottom: 10px; }
 
 /* ---------- Product detail ----------
    لم تُعدَّل منطقيًا في هذه المرحلة (مؤجّلة لمرحلة لاحقة)، لكنها تستخدم

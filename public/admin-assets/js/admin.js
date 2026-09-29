@@ -38,7 +38,16 @@ async function adminRequest(path, options = {}) {
     window.location.href = '/admin';
     return null;
   }
-  return res.json();
+  const json = await res.json().catch(() => ({ success: false, message: 'استجابة غير متوقعة من الخادم' }));
+  redirectIfPasswordChangeRequired(res, json);
+  return json;
+}
+
+/** الخادم يرفض أي عملية حتى تُغيَّر كلمة المرور الأولية — ننقل المدير لنموذج التغيير */
+function redirectIfPasswordChangeRequired(res, json) {
+  if (res.status === 403 && json && json.code === 'password_change_required' && window.location.pathname !== '/admin/settings') {
+    window.location.href = '/admin/settings#password';
+  }
 }
 
 /** رفع ملفات (FormData) — بدون Content-Type حتى يضيف المتصفح حدود الملف (boundary) */
@@ -49,7 +58,9 @@ async function adminUpload(path, formData) {
     headers: { Accept: 'application/json', Authorization: `Bearer ${AdminAuth.getToken()}` },
   });
   if (res.status === 401) { AdminAuth.clear(); window.location.href = '/admin'; return null; }
-  return res.json().catch(() => ({ success: false, message: 'تعذّر رفع الملف' }));
+  const json = await res.json().catch(() => ({ success: false, message: 'تعذّر رفع الملف' }));
+  redirectIfPasswordChangeRequired(res, json);
+  return json;
 }
 
 /** أول رسالة خطأ مفهومة من استجابة Laravel */

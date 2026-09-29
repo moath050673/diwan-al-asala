@@ -12,7 +12,7 @@ class ContactController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:150',
-            'phone' => 'required|string|max:30',
+            'phone' => ['required', 'string', 'max:30', 'regex:'.\App\Http\Requests\StoreOrderRequest::PHONE_PATTERN],
             'message' => 'required|string|max:5000',
         ]);
         ContactMessage::create($data);

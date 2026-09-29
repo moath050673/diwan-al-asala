@@ -21,6 +21,16 @@ class EnsureRole
             return response()->json(['success' => false, 'message' => 'هذا الحساب موقوف'], 401);
         }
 
+        // كلمة المرور الأولية (من ADMIN_PASSWORD) يجب تغييرها قبل أي عمل في لوحة التحكم —
+        // على الخادم وليس في المتصفح فقط. تغيير كلمة المرور نفسه خارج هذه المجموعة.
+        if ($user && $user->must_change_password) {
+            return response()->json([
+                'success' => false,
+                'code' => 'password_change_required',
+                'message' => 'يجب تغيير كلمة المرور الأولية قبل المتابعة',
+            ], 403);
+        }
+
         if (!$user || !in_array($user->role, $roles, true)) {
             return response()->json(['success' => false, 'message' => 'لا تملك صلاحية الوصول إلى هذا المورد'], 403);
         }

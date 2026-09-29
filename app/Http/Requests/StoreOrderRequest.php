@@ -8,6 +8,8 @@ use Illuminate\Validation\Rule;
 
 class StoreOrderRequest extends FormRequest
 {
+    public const PHONE_PATTERN = '/^\+?[0-9][0-9\s\-]{5,24}$/';
+
     public function authorize(): bool
     {
         return true; // Guest checkout
@@ -28,8 +30,9 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'customerName' => 'required|string|max:150',
-            'customerPhone' => 'required|string|max:30',
-            'customerWhatsapp' => 'nullable|string|max:30',
+            // أرقام فقط (مع + أو مسافات أو شرطات) — يمنع إدخال نصوص عشوائية في رقم التواصل
+            'customerPhone' => ['required', 'string', 'max:30', 'regex:'.self::PHONE_PATTERN],
+            'customerWhatsapp' => ['nullable', 'string', 'max:30', 'regex:'.self::PHONE_PATTERN],
             'city' => 'required|string|max:100',
             'area' => 'nullable|string|max:100',
             'address' => 'required|string|max:1000',

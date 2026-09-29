@@ -10,13 +10,13 @@
       <p style="margin-bottom:10px;">📍 صنعاء، اليمن</p>
       <p style="margin-bottom:10px;">🕘 يوميًا من 9 صباحًا حتى 10 مساءً</p>
       <p style="margin-bottom:10px;"><a href="#" id="contact-wa">💬 تواصل عبر واتساب</a></p>
-      <p style="margin-bottom:10px;"><a href="#" id="contact-fb">📘 صفحتنا على فيسبوك</a></p>
-      <p style="margin-bottom:10px;"><a href="#" id="contact-ig">📷 صفحتنا على انستقرام</a></p>
+      <p style="margin-bottom:10px;" hidden><a href="#" id="contact-fb" target="_blank" rel="noopener">📘 صفحتنا على فيسبوك</a></p>
+      <p style="margin-bottom:10px;" hidden><a href="#" id="contact-ig" target="_blank" rel="noopener">📷 صفحتنا على انستقرام</a></p>
     </div>
     <form id="contact-form" style="background:var(--white); border-radius:var(--radius-lg); padding:30px; box-shadow:var(--shadow-sm);">
-      <div class="form-group"><label>الاسم <span class="req">*</span></label><input type="text" name="name" required></div>
-      <div class="form-group"><label>رقم الهاتف <span class="req">*</span></label><input type="tel" name="phone" required></div>
-      <div class="form-group"><label>الرسالة <span class="req">*</span></label><textarea name="message" rows="4" required></textarea></div>
+      <div class="form-group"><label for="ct-name">الاسم <span class="req">*</span></label><input type="text" name="name" id="ct-name" required maxlength="150" autocomplete="name"></div>
+      <div class="form-group"><label for="ct-phone">رقم الهاتف <span class="req">*</span></label><input type="tel" name="phone" id="ct-phone" required maxlength="30" inputmode="tel" autocomplete="tel"></div>
+      <div class="form-group"><label for="ct-message">الرسالة <span class="req">*</span></label><textarea name="message" id="ct-message" rows="4" required maxlength="5000"></textarea></div>
       <button type="submit" class="btn btn-primary btn-block">إرسال الرسالة</button>
     </form>
   </div>
@@ -28,13 +28,22 @@
     renderHeader('contact');
     renderFooter();
     document.getElementById('contact-wa').href = WhatsAppLink.general();
-    document.getElementById('contact-fb').href = window.DIWAN_SETTINGS.facebookUrl;
-    document.getElementById('contact-ig').href = window.DIWAN_SETTINGS.instagramUrl;
+    // روابط التواصل الاجتماعي تظهر فقط بعد ضبطها من لوحة التحكم
+    [['contact-fb', window.DIWAN_SETTINGS.facebookUrl], ['contact-ig', window.DIWAN_SETTINGS.instagramUrl]].forEach(([id, url]) => {
+      if (!isSocialConfigured(url)) return;
+      const link = document.getElementById(id);
+      link.href = url;
+      link.parentElement.hidden = false;
+    });
 
     document.getElementById('contact-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const btn = e.target.querySelector('button[type=submit]');
+      if (btn.disabled) return; // منع الإرسال المزدوج
+      btn.disabled = true;
       const fd = new FormData(e.target);
       const result = await API.sendContact({ name: fd.get('name'), phone: fd.get('phone'), message: fd.get('message') });
+      btn.disabled = false;
       if (!result.ok) {
         showToast(API.errorMessage(result, 'تعذّر إرسال رسالتك، يرجى المحاولة مجددًا أو التواصل عبر واتساب.'), 'error');
         return;

@@ -13,7 +13,9 @@
     renderHeader('categories');
     renderFooter();
     const categories = await Products.loadCategories();
-    document.getElementById('categories-grid').innerHTML = categories.map(Products.categoryCardHTML).join('');
+    document.getElementById('categories-grid').innerHTML = Products.loadFailed()
+      ? Products.errorHTML()
+      : categories.map(Products.categoryCardHTML).join('');
   });
 </script>
 @endpush

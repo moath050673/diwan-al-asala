@@ -1,38 +1,24 @@
 /* ===================================================================
-   products.js — بيانات تجريبية (Seed) + منطق عرض/فلترة المنتجات
-   ملاحظة: هذه بيانات تجريبية Placeholder للتطوير فقط، ويجب استبدالها
-   ببيانات حقيقية تُدار من لوحة التحكم (Admin Dashboard) بعد الربط بالـ API.
+   products.js — تحميل المنتجات والتصنيفات من الـ API + منطق العرض والفلترة.
+   لا توجد بيانات تجريبية: عند تعذّر الاتصال تُعرض رسالة خطأ مع زر إعادة المحاولة
+   (عرض منتجات وهمية بأسعار غير حقيقية كان سيضلل العميل).
    =================================================================== */
 
 // أيقونات التصنيفات المعروفة؛ أي تصنيف جديد يُضاف من لوحة التحكم يأخذ الأيقونة الافتراضية
 const CATEGORY_ICONS = { zabad: '🌿', bakhoor: '🔥', perfume: '🧴' };
 const DEFAULT_CATEGORY_ICON = '✨';
 
-// احتياطي فقط عند تعذّر الوصول للـ API — التصنيفات الفعلية تُجلب من /api/categories
-const DIWAN_CATEGORIES = [
-  { id: 1, slug: 'zabad', name: 'الزباد' },
-  { id: 2, slug: 'bakhoor', name: 'البخور' },
-  { id: 3, slug: 'perfume', name: 'العطور' },
-];
-
-// بيانات تجريبية — يمكن حذفها/استبدالها من لوحة التحكم
-const DIWAN_PRODUCTS_SEED = [
-  { id: 1, category: 'perfume', categoryName: 'العطور', name: 'عطر الأصالة الملكي', price: 15000, oldPrice: 18000, stock: 12, featured: true, rating: 4.8, sku: 'PRF-001', desc: 'عطر شرقي فاخر بتركيبة أصيلة تجمع بين العود والمسك، يدوم طويلًا ويناسب جميع المناسبات.' },
-  { id: 2, category: 'bakhoor', categoryName: 'البخور', name: 'بخور فاخر', price: 8500, oldPrice: null, stock: 20, featured: true, rating: 4.6, sku: 'BKH-001', desc: 'بخور يمني أصيل معد يدويًا من أجود أنواع العود الطبيعي.' },
-  { id: 3, category: 'zabad', categoryName: 'الزباد', name: 'زباد أصلي', price: 22000, oldPrice: 25000, stock: 5, featured: true, rating: 5.0, sku: 'ZBD-001', desc: 'زباد طبيعي فاخر يُستخدم كثابت للعطور ويمنحها رائحة أصيلة تدوم.' },
-  { id: 4, category: 'perfume', categoryName: 'العطور', name: 'عطر شرقي فاخر', price: 12000, oldPrice: null, stock: 0, featured: false, rating: 4.4, sku: 'PRF-002', desc: 'مزيج شرقي دافئ من الفانيليا والعنبر.' },
-  { id: 5, category: 'bakhoor', categoryName: 'البخور', name: 'بخور يمني فاخر', price: 9500, oldPrice: 11000, stock: 15, featured: false, rating: 4.7, sku: 'BKH-002', desc: 'بخور يمني تقليدي بنكهة مميزة وعبق فاخر.' },
-  { id: 6, category: 'zabad', categoryName: 'الزباد', name: 'خلطة متجر ديوان الأصالة', price: 30000, oldPrice: null, stock: 8, featured: true, rating: 4.9, sku: 'MIX-001', desc: 'خلطة حصرية من متجر ديوان الأصالة تجمع الزباد والعود والمسك.' },
-];
-
 const Products = (() => {
   let cache = null;
+  let failed = false;
 
   async function loadAll() {
     if (cache) return cache;
-    // الـ API يُرجع 20 منتجًا افتراضيًا؛ الفلترة هنا تتم في المتصفح لذا نطلب الحد الأقصى (100)
+    // الفلترة تتم في المتصفح لذا نطلب الحد الأقصى (100)
     const apiResult = await API.getProducts('?limit=100');
-    cache = apiResult && apiResult.data ? apiResult.data : DIWAN_PRODUCTS_SEED;
+    failed = !(apiResult && Array.isArray(apiResult.data));
+    if (failed) return []; // لا نخزّن الفشل — المحاولة التالية تعيد الطلب
+    cache = apiResult.data;
     return cache;
   }
 
@@ -42,9 +28,25 @@ const Products = (() => {
   async function loadCategories() {
     if (categoriesCache) return categoriesCache;
     const apiResult = await API.getCategories();
-    const list = apiResult && Array.isArray(apiResult.data) ? apiResult.data : DIWAN_CATEGORIES;
-    categoriesCache = list.map(c => ({ ...c, icon: CATEGORY_ICONS[c.slug] || DEFAULT_CATEGORY_ICON }));
+    if (!(apiResult && Array.isArray(apiResult.data))) {
+      failed = true;
+      return [];
+    }
+    categoriesCache = apiResult.data.map(c => ({ ...c, icon: CATEGORY_ICONS[c.slug] || DEFAULT_CATEGORY_ICON }));
     return categoriesCache;
+  }
+
+  /** هل فشل آخر تحميل من الخادم؟ (لعرض رسالة خطأ بدل "لا توجد منتجات") */
+  function loadFailed() { return failed; }
+
+  function errorHTML() {
+    return `
+      <div class="empty-state" style="grid-column:1/-1;" role="alert">
+        <div class="icon">⚠️</div>
+        <h3>تعذّر تحميل المنتجات</h3>
+        <p>تحقق من اتصالك بالإنترنت ثم أعد المحاولة.</p>
+        <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="location.reload()">إعادة المحاولة</button>
+      </div>`;
   }
 
   function categoryCardHTML(c) {
@@ -161,5 +163,5 @@ const Products = (() => {
     </div>`;
   }
 
-  return { loadAll, loadCategories, categoryCardHTML, getById, getDetails, ratingHTML, filterAndSort, formatPrice, productCardHTML, placeholderHTML: placeholderMarkup };
+  return { loadAll, loadCategories, loadFailed, errorHTML, categoryCardHTML, getById, getDetails, ratingHTML, filterAndSort, formatPrice, productCardHTML, placeholderHTML: placeholderMarkup };
 })();

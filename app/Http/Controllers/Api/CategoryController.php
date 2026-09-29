@@ -11,7 +11,8 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::where('status', 'active')->get(['id', 'name', 'slug', 'description', 'image']);
+        // ترتيب ثابت (الأقدم أولًا) — بدونه يختلف ترتيب العرض حسب قاعدة البيانات
+        $categories = Category::where('status', 'active')->orderBy('id')->get(['id', 'name', 'slug', 'description', 'image']);
         return response()->json(['success' => true, 'data' => $categories]);
     }
 

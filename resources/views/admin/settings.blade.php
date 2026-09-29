@@ -71,6 +71,8 @@
     }
     pwdForm.reset();
     alert('تم تغيير كلمة المرور بنجاح. تم تسجيل الخروج من الأجهزة الأخرى.');
+    // إن كانت كلمة المرور الأولية: الإعدادات لم تُحمَّل بعد (الخادم كان يرفضها) — نعيد تحميل الصفحة
+    if (!form.elements.store_name.value) window.location.reload();
   });
 </script>
 @endpush

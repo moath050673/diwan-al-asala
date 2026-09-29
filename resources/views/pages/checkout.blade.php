@@ -18,17 +18,17 @@
     <div id="checkout-content" class="split-layout split-checkout">
       <form id="checkout-form">
         <div class="form-grid">
-          <div class="form-group full"><label>الاسم الكامل <span class="req">*</span></label><input type="text" name="name" required></div>
+          <div class="form-group full"><label for="co-name">الاسم الكامل <span class="req">*</span></label><input type="text" name="name" id="co-name" required maxlength="150" autocomplete="name"></div>
           <div class="form-group" id="phone-group">
-            <label>رقم الهاتف <span class="req">*</span></label>
-            <input type="tel" name="phone" id="phone-input" required pattern="[0-9]{9}" maxlength="9" inputmode="numeric" placeholder="7XXXXXXXX">
+            <label for="phone-input">رقم الهاتف <span class="req">*</span></label>
+            <input type="tel" name="phone" id="phone-input" required pattern="[0-9]{9}" maxlength="9" inputmode="numeric" placeholder="7XXXXXXXX" autocomplete="tel-national">
             <span class="form-error">رقم الهاتف يجب أن يتكون من 9 أرقام بالضبط</span>
           </div>
-          <div class="form-group"><label>رقم واتساب</label><input type="tel" name="whatsapp"></div>
-          <div class="form-group"><label>المحافظة</label><input type="text" name="city" value="صنعاء" required></div>
-          <div class="form-group"><label>المدينة / المنطقة</label><input type="text" name="area" required></div>
-          <div class="form-group full"><label>العنوان بالتفصيل <span class="req">*</span></label><textarea name="address" rows="2" required></textarea></div>
-          <div class="form-group full"><label>ملاحظات الطلب</label><textarea name="notes" rows="2"></textarea></div>
+          <div class="form-group"><label for="co-whatsapp">رقم واتساب</label><input type="tel" name="whatsapp" id="co-whatsapp" maxlength="30" inputmode="tel" autocomplete="tel"></div>
+          <div class="form-group"><label for="co-city">المحافظة</label><input type="text" name="city" id="co-city" value="صنعاء" required maxlength="100" autocomplete="address-level1"></div>
+          <div class="form-group"><label for="co-area">المدينة / المنطقة</label><input type="text" name="area" id="co-area" required maxlength="100" autocomplete="address-level2"></div>
+          <div class="form-group full"><label for="co-address">العنوان بالتفصيل <span class="req">*</span></label><textarea name="address" id="co-address" rows="2" required maxlength="1000" autocomplete="street-address"></textarea></div>
+          <div class="form-group full"><label for="co-notes">ملاحظات الطلب</label><textarea name="notes" id="co-notes" rows="2" maxlength="2000"></textarea></div>
         </div>
 
         <h3 style="margin:20px 0 12px; color:var(--primary); font-family:var(--font-display);">طريقة الدفع</h3>
@@ -86,8 +86,8 @@
         </div>
 
         <div id="receipt-upload-wrap" style="display:none; margin-top:16px;">
-          <div class="form-group"><label>رقم عملية الدفع</label><input type="text" name="transactionNumber"></div>
-          <div class="form-group"><label>صورة إيصال الدفع</label><input type="file" name="receipt" accept="image/*"></div>
+          <div class="form-group"><label for="co-transaction">رقم عملية الدفع</label><input type="text" name="transactionNumber" id="co-transaction" maxlength="100" inputmode="numeric"></div>
+          <div class="form-group"><label for="co-receipt">صورة إيصال الدفع</label><input type="file" name="receipt" id="co-receipt" accept="image/jpeg,image/png,image/webp"></div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block" style="margin-top:20px;">تأكيد الطلب</button>
@@ -97,13 +97,13 @@
         <h3 style="margin-bottom:14px; color:var(--primary); font-family:var(--font-display);">ملخص الطلب</h3>
         <div id="checkout-items"></div>
         <div id="checkout-totals" style="margin-top:10px;"></div>
-        <button class="btn btn-whatsapp btn-block" id="wa-send-cart" style="margin-top:14px;">إرسال السلة عبر واتساب</button>
+        <button type="button" class="btn btn-whatsapp btn-block" id="wa-send-cart" style="margin-top:14px;">إرسال السلة عبر واتساب</button>
       </div>
     </div>
   </div>
 </div>
 @endsection
 @push('scripts')
-<script src="/js/checkout.js"></script>
+<script src="{{ \App\Support\Asset::url('/js/checkout.js') }}"></script>
 <script>document.addEventListener('DOMContentLoaded', () => { renderHeader(''); renderFooter(); });</script>
 @endpush

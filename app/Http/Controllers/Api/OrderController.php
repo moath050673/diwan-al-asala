@@ -56,7 +56,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $query = Order::query();
-        if ($status = $request->query('status')) $query->where('order_status', $status);
+        if ($status = $this->queryText($request, 'status', 20)) $query->where('order_status', $status);
 
         $orders = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->paginate($this->perPage($request));
 

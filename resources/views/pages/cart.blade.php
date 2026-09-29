@@ -39,9 +39,9 @@
       <tr data-id="${escapeHtml(i.id)}">
         <td><div class="cart-item-info"><div class="cart-item-thumb">${i.image ? `<img src="${escapeHtml(i.image)}" alt="" loading="lazy">` : "🧴"}</div><span>${escapeHtml(i.name)}</span></div></td>
         <td>${Products.formatPrice(i.price)}</td>
-        <td><div class="qty-control"><button class="qty-dec">−</button><input type="number" class="qty-val" value="${escapeHtml(i.qty)}" min="1"><button class="qty-inc">+</button></div></td>
+        <td><div class="qty-control"><button type="button" class="qty-dec" aria-label="إنقاص الكمية">−</button><input type="number" class="qty-val" value="${escapeHtml(i.qty)}" min="1" aria-label="الكمية"><button type="button" class="qty-inc" aria-label="زيادة الكمية">+</button></div></td>
         <td>${Products.formatPrice(i.price * i.qty)}</td>
-        <td><button class="remove-item">حذف</button></td>
+        <td><button type="button" class="remove-item" aria-label="حذف ${escapeHtml(i.name)} من السلة">حذف</button></td>
       </tr>
     `).join('');
 
@@ -64,6 +64,11 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', () => { renderHeader(''); renderFooter(); renderCart(); });
+  document.addEventListener('DOMContentLoaded', async () => {
+    renderHeader(''); renderFooter(); renderCart();
+    // أسعار السلة المحفوظة في المتصفح قد تكون قديمة — نحدّثها من المتجر
+    const sync = await Cart.syncWithStore();
+    if (sync.removed.length || sync.changed) { renderCart(); Cart.syncNotice(sync); }
+  });
 </script>
 @endpush

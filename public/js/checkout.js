@@ -4,8 +4,11 @@
    حسابها من قاعدة البيانات ولا يثق بأي رقم قادم من المتصفح (راجع orders controller).
    =================================================================== */
 
-document.addEventListener('DOMContentLoaded', () => {
-  const items = Cart.getAll();
+document.addEventListener('DOMContentLoaded', async () => {
+  // الأسعار المحفوظة في المتصفح قد تكون قديمة — نعرض للعميل الأسعار الحالية قبل التأكيد
+  const sync = await Cart.syncWithStore();
+  Cart.syncNotice(sync);
+  const items = sync.items;
   const listEl = document.getElementById('checkout-items');
   const totalsEl = document.getElementById('checkout-totals');
   const form = document.getElementById('checkout-form');
@@ -120,7 +123,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (rawFd.get('transactionNumber')) fd.append('transactionNumber', rawFd.get('transactionNumber'));
     fd.append('items', JSON.stringify(items.map(i => ({ productId: i.id, quantity: i.qty })))); // السعر يُحسب من الخادم
     const receiptFile = rawFd.get('receipt');
-    if (receiptFile && receiptFile.size > 0) fd.append('receipt', receiptFile);
+    if (receiptFile && receiptFile.size > 0) {
+      // نفس حدود الخادم — رسالة فورية بدل انتظار رفع ملف سيُرفض
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(receiptFile.type)) {
+        showToast('صورة الإيصال يجب أن تكون JPG أو PNG أو WEBP', 'error');
+        return;
+      }
+      if (receiptFile.size > 4 * 1024 * 1024) {
+        showToast('حجم صورة الإيصال يجب ألا يتجاوز 4 ميجابايت', 'error');
+        return;
+      }
+      fd.append('receipt', receiptFile);
+    }
 
     const submitBtn = form.querySelector('button[type=submit]');
     submitBtn.disabled = true;

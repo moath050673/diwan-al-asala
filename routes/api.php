@@ -17,12 +17,16 @@ Route::pattern('id', '[0-9]+');
 // ---------- عام (بدون تسجيل دخول) ----------
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{id}', [ProductController::class, 'show']);
-Route::get('/categories', [CategoryController::class, 'index']);
+// بيانات المتجر العامة: المتصفح يعيد استخدامها 60 ثانية أثناء التنقل بين الصفحات (ETag يعيد 304 إن لم تتغير).
+// التأخير الأقصى لظهور تعديلات لوحة التحكم دقيقة واحدة، والخادم يتحقق دائمًا من السعر والمخزون عند الطلب.
+Route::middleware('cache.headers:public;max_age=60;etag')->group(function () {
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{id}', [ProductController::class, 'show']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/payments/settings', [PaymentController::class, 'settings']);
+    Route::get('/settings', [SettingController::class, 'public']);
+});
 Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:checkout'); // Guest Checkout
-Route::get('/payments/settings', [PaymentController::class, 'settings']);
-Route::get('/settings', [SettingController::class, 'public']);
 Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:contact');
 Route::get('/health', fn () => response()->json(['success' => true, 'status' => 'ok']));
 

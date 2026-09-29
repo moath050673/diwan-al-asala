@@ -9,6 +9,7 @@
 
 @push('structured-data')
 <script type="application/ld+json">{!! json_encode($productSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+<script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
 @endpush
 
 @section('content')
@@ -143,9 +144,9 @@
           <div class="pd-qty-row">
             <span>الكمية:</span>
             <div class="qty-control">
-              <button id="qty-minus">−</button>
-              <input type="number" id="qty-input" value="1" min="1" max="${product.stock || 1}">
-              <button id="qty-plus">+</button>
+              <button type="button" id="qty-minus" aria-label="إنقاص الكمية">−</button>
+              <input type="number" id="qty-input" value="1" min="1" max="${product.stock || 1}" aria-label="الكمية">
+              <button type="button" id="qty-plus" aria-label="زيادة الكمية">+</button>
             </div>
           </div>
           <div class="pd-actions">

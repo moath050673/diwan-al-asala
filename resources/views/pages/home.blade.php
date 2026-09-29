@@ -3,7 +3,7 @@
 @section('title', 'متجر ديوان الأصالة | عطور وبخور وزباد بروح الأصالة اليمنية')
 
 @push('head')
-<link rel="stylesheet" href="/css/home.css">
+<link rel="stylesheet" href="{{ \App\Support\Asset::url('/css/home.css') }}">
 @endpush
 
 @push('structured-data')
@@ -136,9 +136,17 @@
 @endsection
 
 @push('scripts')
-<script src="/js/vendor/three.min.js" defer></script>
-<script src="/js/hero-scene.js" defer></script>
 <script>
+  // مشهد الخلفية ثلاثي الأبعاد (three.js ~150KB) زخرفة فقط: نحمّله بدون أن يؤخر الهيدر
+  // والمنتجات — السكربتات المضافة ديناميكيًا لا تؤخر DOMContentLoaded، و async=false يحفظ ترتيبها.
+  // حتى يكتمل التحميل تبقى المبخرة ودخانها (SVG) ظاهرة كما هي.
+  ['/js/vendor/three.min.js', @json(\App\Support\Asset::url('/js/hero-scene.js'))].forEach((src) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = false;
+    document.body.appendChild(s);
+  });
+
   document.addEventListener('DOMContentLoaded', async () => {
     renderHeader('home');
     renderFooter();
@@ -148,13 +156,14 @@
     const shipping = window.DIWAN_SETTINGS.shippingCost;
     if (shipping > 0) document.getElementById('trust-shipping').textContent = 'التوصيل بـ ' + Products.formatPrice(shipping);
 
-    const categories = await Products.loadCategories();
+    // التصنيفات والمنتجات بالتوازي (طلبان في نفس الوقت بدل انتظار أحدهما للآخر)
+    const [categories, all] = await Promise.all([Products.loadCategories(), Products.loadAll()]);
     document.getElementById('categories-grid').innerHTML = categories.map(Products.categoryCardHTML).join('');
 
-    const all = await Products.loadAll();
     const featured = all.filter(p => p.featured);
-    document.getElementById('featured-products').innerHTML =
-      featured.map(Products.productCardHTML).join('') || '<p>لا توجد منتجات مميزة حاليًا.</p>';
+    document.getElementById('featured-products').innerHTML = Products.loadFailed()
+      ? Products.errorHTML()
+      : (featured.map(Products.productCardHTML).join('') || '<p>لا توجد منتجات مميزة حاليًا.</p>');
   });
 </script>
 @endpush
