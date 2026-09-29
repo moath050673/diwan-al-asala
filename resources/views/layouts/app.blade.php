@@ -32,7 +32,10 @@
 {{-- الخطوط المعرّفة في style.css (--font-display / --font-body) — لم تكن تُحمَّل من قبل --}}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap">
+{{-- تحميل غير حاجب: الصفحة تظهر فورًا بخط احتياطي ثم تتبدل للخطوط (display=swap) — ملف Google
+     كان يؤخر أول ظهور للصفحة حتى يكتمل تحميله --}}
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap"></noscript>
 <link rel="stylesheet" href="{{ \App\Support\Asset::url('/css/style.css') }}">
 <link rel="stylesheet" href="{{ \App\Support\Asset::url('/css/components.css') }}">
 <link rel="stylesheet" href="{{ \App\Support\Asset::url('/css/responsive.css') }}">
