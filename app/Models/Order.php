@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $fillable = [
-        'order_number', 'customer_id', 'subtotal', 'shipping_cost', 'discount', 'total',
+        'order_number', 'customer_id', 'subtotal', 'shipping_cost', 'delivery', 'discount', 'total',
         'payment_method', 'payment_status', 'order_status',
         'customer_name', 'customer_phone', 'customer_address', 'notes', 'stock_released_at',
     ];
@@ -17,6 +17,7 @@ class Order extends Model
         return [
             'subtotal' => 'decimal:2',
             'shipping_cost' => 'decimal:2',
+            'delivery' => 'boolean',
             'discount' => 'decimal:2',
             'total' => 'decimal:2',
             'stock_released_at' => 'datetime',
@@ -46,6 +47,8 @@ class Order extends Model
         'delivered' => 'تم التسليم',
         'cancelled' => 'ملغي',
     ];
+
+    const PICKUP_ADDRESS = 'استلام من المتجر';
 
     const PAYMENT_LABELS = [
         'cod' => 'الدفع عند الاستلام',

@@ -142,7 +142,10 @@
     document.getElementById('order-detail-body').innerHTML = `
       <p><strong>رقم الطلب:</strong> #${escapeHtml(o.order_number)}</p>
       <p><strong>العميل:</strong> ${escapeHtml(o.customer_name)} - ${escapeHtml(o.customer_phone)}</p>
-      <p><strong>العنوان:</strong> ${escapeHtml(o.customer_address)}</p>
+      <p><strong>التوصيل:</strong> ${o.delivery
+        ? `🚚 نعم — ${formatPrice(o.shipping_cost)}`
+        : '<span style="color:#b45309; font-weight:700;">🏪 لا — استلام من المتجر</span>'}</p>
+      ${o.delivery ? `<p><strong>العنوان:</strong> ${escapeHtml(o.customer_address)}</p>` : ''}
       <p><strong>ملاحظات:</strong> ${escapeHtml(o.notes || '—')}</p>
       <h4 style="margin:14px 0 8px;">المنتجات</h4>
       <ul>${o.items.map(i => `<li>${escapeHtml(i.product_name)} × ${escapeHtml(i.quantity)} = ${formatPrice(i.total)}</li>`).join('')}</ul>

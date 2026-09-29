@@ -26,6 +26,11 @@ class StoreOrderRequest extends FormRequest
         }
     }
 
+    public function wantsDelivery(): bool
+    {
+        return $this->boolean('delivery', true);
+    }
+
     public function rules(): array
     {
         return [
@@ -33,9 +38,12 @@ class StoreOrderRequest extends FormRequest
             // أرقام فقط (مع + أو مسافات أو شرطات) — يمنع إدخال نصوص عشوائية في رقم التواصل
             'customerPhone' => ['required', 'string', 'max:30', 'regex:'.self::PHONE_PATTERN],
             'customerWhatsapp' => ['nullable', 'string', 'max:30', 'regex:'.self::PHONE_PATTERN],
-            'city' => 'required|string|max:100',
+            // خدمة التوصيل اختيارية — بدونها (استلام من المتجر) لا حاجة للعنوان.
+            // عدم إرسال الحقل = توصيل (توافق مع الطلبات القديمة وواتساب...)
+            'delivery' => 'sometimes|boolean',
+            'city' => [Rule::requiredIf($this->wantsDelivery()), 'nullable', 'string', 'max:100'],
             'area' => 'nullable|string|max:100',
-            'address' => 'required|string|max:1000',
+            'address' => [Rule::requiredIf($this->wantsDelivery()), 'nullable', 'string', 'max:1000'],
             'notes' => 'nullable|string|max:2000',
             'paymentMethod' => ['required', Rule::in(array_keys(Order::PAYMENT_LABELS))],
             'transactionNumber' => 'nullable|string|max:100',

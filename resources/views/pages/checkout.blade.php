@@ -25,9 +25,19 @@
             <span class="form-error">رقم الهاتف يجب أن يتكون من 9 أرقام بالضبط</span>
           </div>
           <div class="form-group"><label for="co-whatsapp">رقم واتساب</label><input type="tel" name="whatsapp" id="co-whatsapp" maxlength="30" inputmode="tel" autocomplete="tel"></div>
-          <div class="form-group"><label for="co-city">المحافظة</label><input type="text" name="city" id="co-city" value="صنعاء" required maxlength="100" autocomplete="address-level1"></div>
-          <div class="form-group"><label for="co-area">المدينة / المنطقة</label><input type="text" name="area" id="co-area" required maxlength="100" autocomplete="address-level2"></div>
-          <div class="form-group full"><label for="co-address">العنوان بالتفصيل <span class="req">*</span></label><textarea name="address" id="co-address" rows="2" required maxlength="1000" autocomplete="street-address"></textarea></div>
+          {{-- خدمة التوصيل اختيارية: بدونها يكون الطلب استلامًا من المتجر ولا يُطلب العنوان --}}
+          <div class="form-group full">
+            <label class="payment-option delivery-option" for="co-delivery">
+              <input type="checkbox" name="delivery" id="co-delivery" value="1">
+              <div class="pm-body">
+                <div class="pm-title">🚚 أريد خدمة التوصيل <span id="delivery-cost-label"></span></div>
+                <div class="pm-desc">اضغط هنا لنوصل طلبك إلى عنوانك داخل صنعاء. بدون التوصيل تستلم طلبك من المتجر.</div>
+              </div>
+            </label>
+          </div>
+          <div class="form-group" data-delivery-field><label for="co-city">المحافظة</label><input type="text" name="city" id="co-city" value="صنعاء" required maxlength="100" autocomplete="address-level1"></div>
+          <div class="form-group" data-delivery-field><label for="co-area">المدينة / المنطقة</label><input type="text" name="area" id="co-area" required maxlength="100" autocomplete="address-level2"></div>
+          <div class="form-group full" data-delivery-field><label for="co-address">العنوان بالتفصيل <span class="req">*</span></label><textarea name="address" id="co-address" rows="2" required maxlength="1000" autocomplete="street-address"></textarea></div>
           <div class="form-group full"><label for="co-notes">ملاحظات الطلب</label><textarea name="notes" id="co-notes" rows="2" maxlength="2000"></textarea></div>
         </div>
 

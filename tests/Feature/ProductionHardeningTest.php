@@ -337,6 +337,55 @@ class ProductionHardeningTest extends TestCase
             ->assertSee('class="skip-link"', false);
     }
 
+    // ---------- Optional delivery ----------
+
+    private function orderPayload(array $extra = []): array
+    {
+        $product = $this->product(['price' => 5000, 'stock_quantity' => 10]);
+
+        return [
+            'customerName' => 'عميل', 'customerPhone' => '777123456', 'paymentMethod' => 'cod',
+            'items' => [['productId' => $product->id, 'quantity' => 2]], ...$extra,
+        ];
+    }
+
+    public function test_order_without_delivery_has_no_shipping_and_needs_no_address()
+    {
+        Setting::set('shipping_cost_sanaa', '1000');
+
+        $this->postJson('/api/orders', $this->orderPayload(['delivery' => '0']))
+            ->assertCreated()
+            ->assertJsonPath('data.total', 10000)
+            ->assertJsonPath('data.delivery', false)
+            ->assertJsonPath('data.customerAddress', \App\Models\Order::PICKUP_ADDRESS);
+
+        $order = \App\Models\Order::firstOrFail();
+        $this->assertFalse($order->delivery);
+        $this->assertSame(0.0, (float) $order->shipping_cost);
+    }
+
+    public function test_order_with_delivery_adds_shipping_and_requires_address()
+    {
+        Setting::set('shipping_cost_sanaa', '1000');
+
+        $this->postJson('/api/orders', $this->orderPayload(['delivery' => '1']))
+            ->assertStatus(422)->assertJsonValidationErrors(['address', 'city']);
+
+        $this->postJson('/api/orders', $this->orderPayload(['delivery' => '1', 'city' => 'صنعاء', 'area' => 'حدة', 'address' => 'شارع 1']))
+            ->assertCreated()
+            ->assertJsonPath('data.total', 11000)
+            ->assertJsonPath('data.delivery', true)
+            ->assertJsonPath('data.shippingCost', 1000);
+    }
+
+    public function test_orders_without_delivery_field_keep_previous_behaviour()
+    {
+        Setting::set('shipping_cost_sanaa', '1000');
+
+        $this->postJson('/api/orders', $this->orderPayload(['city' => 'صنعاء', 'address' => 'شارع 1']))
+            ->assertCreated()->assertJsonPath('data.total', 11000)->assertJsonPath('data.delivery', true);
+    }
+
     public function test_production_stores_uploads_in_database_by_default()
     {
         $original = [$_SERVER['APP_ENV'] ?? null, $_ENV['APP_ENV'] ?? null];

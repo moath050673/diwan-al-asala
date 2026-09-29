@@ -34,7 +34,9 @@ class NewOrderNotifier
         return "🔔 طلب جديد #{$order->order_number}\n\n"
             ."👤 {$order->customer_name}\n"
             ."📞 {$order->customer_phone}\n"
-            ."📍 {$order->customer_address}\n\n"
+            .($order->delivery
+                ? "🚚 توصيل: {$order->customer_address}\n\n"
+                : "🏪 استلام من المتجر (بدون توصيل)\n\n")
             ."{$items}\n\n"
             ."💰 الإجمالي: {$total} ريال\n"
             ."💳 {$method}\n\n"

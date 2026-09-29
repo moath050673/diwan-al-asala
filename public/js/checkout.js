@@ -25,17 +25,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const shipping = window.DIWAN_SETTINGS.shippingCost;
-  const t = Cart.totals(items, shipping);
+  const deliveryBox = document.getElementById('co-delivery');
+  const deliveryFields = document.querySelectorAll('[data-delivery-field]');
+  let t = Cart.totals(items, 0);
 
   listEl.innerHTML = items.map(i => `
     <div class="summary-row"><span>${escapeHtml(i.name)} × ${escapeHtml(i.qty)}</span><span>${Products.formatPrice(i.price * i.qty)}</span></div>
   `).join('');
 
-  totalsEl.innerHTML = `
-    <div class="summary-row"><span>إجمالي المنتجات</span><span>${Products.formatPrice(t.subtotal)}</span></div>
-    <div class="summary-row"><span>تكلفة التوصيل</span><span>${Products.formatPrice(t.shippingCost)}</span></div>
-    <div class="summary-row total"><span>الإجمالي النهائي</span><span>${Products.formatPrice(t.total)}</span></div>
-  `;
+  // ---------- خدمة التوصيل (اختيارية) ----------
+  // مفعّلة: تظهر حقول العنوان وتُضاف تكلفة التوصيل. غير مفعّلة: استلام من المتجر بدون تكلفة.
+  if (shipping > 0) document.getElementById('delivery-cost-label').textContent = `(+${Products.formatPrice(shipping)})`;
+
+  function applyDelivery() {
+    const on = deliveryBox.checked;
+    deliveryBox.closest('.delivery-option').classList.toggle('selected', on);
+    deliveryFields.forEach(group => {
+      group.style.display = on ? '' : 'none';
+      // حقول العنوان مطلوبة فقط مع التوصيل (حقل مخفي ومطلوب كان سيمنع إرسال النموذج)
+      group.querySelectorAll('input, textarea').forEach(el => { el.required = on; });
+    });
+
+    t = Cart.totals(items, on ? shipping : 0);
+    totalsEl.innerHTML = `
+      <div class="summary-row"><span>إجمالي المنتجات</span><span>${Products.formatPrice(t.subtotal)}</span></div>
+      <div class="summary-row"><span>التوصيل</span><span>${on ? Products.formatPrice(t.shippingCost) : 'استلام من المتجر'}</span></div>
+      <div class="summary-row total"><span>الإجمالي النهائي</span><span>${Products.formatPrice(t.total)}</span></div>
+    `;
+  }
+  deliveryBox.addEventListener('change', applyDelivery);
+  applyDelivery();
 
   // بيانات حسابات جيب وكريمي مكتوبة في الصفحة من الخادم (PageController::checkout)
 
@@ -84,16 +103,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // إذا كان "الدفع عند الاستلام" معطّلًا من لوحة التحكم، نختار أول طريقة متاحة
-  if (!document.querySelector('.payment-option input:checked')) {
-    const first = document.querySelector('.payment-option');
+  if (!document.querySelector('.payment-methods .payment-option input:checked')) {
+    const first = document.querySelector('.payment-methods .payment-option');
     if (first) setTimeout(() => first.click()); // بعد ربط معالج التبديل أدناه (يُظهر حقل الإيصال إن لزم)
   }
 
 
   // ---------- Payment method switching ----------
-  document.querySelectorAll('.payment-option').forEach(opt => {
+  // .payment-methods فقط — خيار التوصيل له نفس الشكل لكنه ليس طريقة دفع
+  document.querySelectorAll('.payment-methods .payment-option').forEach(opt => {
     opt.addEventListener('click', () => {
-      document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+      document.querySelectorAll('.payment-methods .payment-option').forEach(o => o.classList.remove('selected'));
       opt.classList.add('selected');
       opt.querySelector('input[type=radio]').checked = true;
       const uploadWrap = document.getElementById('receipt-upload-wrap');
@@ -115,9 +135,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     fd.append('customerName', rawFd.get('name'));
     fd.append('customerPhone', rawFd.get('phone'));
     fd.append('customerWhatsapp', rawFd.get('whatsapp') || rawFd.get('phone'));
-    fd.append('city', rawFd.get('city'));
-    fd.append('area', rawFd.get('area'));
-    fd.append('address', rawFd.get('address'));
+    const withDelivery = deliveryBox.checked;
+    fd.append('delivery', withDelivery ? '1' : '0');
+    if (withDelivery) {
+      fd.append('city', rawFd.get('city'));
+      fd.append('area', rawFd.get('area') || '');
+      fd.append('address', rawFd.get('address'));
+    }
     fd.append('notes', rawFd.get('notes') || '');
     fd.append('paymentMethod', rawFd.get('paymentMethod'));
     if (rawFd.get('transactionNumber')) fd.append('transactionNumber', rawFd.get('transactionNumber'));

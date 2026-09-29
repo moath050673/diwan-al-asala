@@ -45,12 +45,13 @@
       </tr>
     `).join('');
 
+    // التوصيل اختياري — يختاره العميل في صفحة إتمام الطلب، لذلك لا يدخل في إجمالي السلة
     const shipping = window.DIWAN_SETTINGS.shippingCost;
-    const t = Cart.totals(items, shipping);
+    const t = Cart.totals(items, 0);
     document.getElementById('cart-totals').innerHTML = `
       <div class="summary-row"><span>إجمالي المنتجات</span><span>${Products.formatPrice(t.subtotal)}</span></div>
-      <div class="summary-row"><span>تكلفة التوصيل</span><span>${Products.formatPrice(t.shippingCost)}</span></div>
-      <div class="summary-row total"><span>الإجمالي النهائي</span><span>${Products.formatPrice(t.total)}</span></div>
+      <div class="summary-row"><span>التوصيل (اختياري)</span><span>${shipping > 0 ? '+' + Products.formatPrice(shipping) : 'مجاني'}</span></div>
+      <div class="summary-row total"><span>الإجمالي</span><span>${Products.formatPrice(t.total)}</span></div>
     `;
 
     document.getElementById('wa-send-cart-btn').onclick = () => window.open(WhatsAppLink.cartSummary(items, t), '_blank');

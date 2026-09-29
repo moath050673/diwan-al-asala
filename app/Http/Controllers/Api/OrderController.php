@@ -45,6 +45,8 @@ class OrderController extends Controller
             'orderNumber' => $order->order_number,
             'items' => $order->items->map(fn ($i) => ['name' => $i->product_name, 'qty' => $i->quantity]),
             'total' => (float) $order->total,
+            'delivery' => $order->delivery,
+            'shippingCost' => (float) $order->shipping_cost,
             'customerName' => $order->customer_name,
             'customerPhone' => $order->customer_phone,
             'customerAddress' => $order->customer_address,

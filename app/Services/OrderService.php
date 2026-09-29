@@ -74,10 +74,14 @@ class OrderService
                 ];
             }
 
-            $shippingCost = (float) Setting::get('shipping_cost_sanaa', 0);
+            // التوصيل اختياري: يُضاف سعره فقط إذا طلبه العميل، وإلا فالطلب استلام من المتجر
+            $withDelivery = filter_var($payload['delivery'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $shippingCost = $withDelivery ? (float) Setting::get('shipping_cost_sanaa', 0) : 0.0;
             $total = $subtotal + $shippingCost;
             $paymentStatus = $payload['paymentMethod'] === 'cod' ? 'cash_on_delivery' : 'pending';
-            $fullAddress = trim(($payload['city'] ?? '').' - '.($payload['area'] ?? '').' - '.($payload['address'] ?? ''), ' -');
+            $fullAddress = $withDelivery
+                ? trim(($payload['city'] ?? '').' - '.($payload['area'] ?? '').' - '.($payload['address'] ?? ''), ' -')
+                : Order::PICKUP_ADDRESS;
 
             // إيجاد العميل بحسب رقم الهاتف، أو إنشاء سجل جديد له إذا كانت أول مرة يطلب فيها
             $customer = Customer::firstOrCreate(
@@ -103,6 +107,7 @@ class OrderService
                 'customer_id' => $customer->id,
                 'subtotal' => $subtotal,
                 'shipping_cost' => $shippingCost,
+                'delivery' => $withDelivery,
                 'total' => $total,
                 'payment_method' => $payload['paymentMethod'],
                 'payment_status' => $paymentStatus,

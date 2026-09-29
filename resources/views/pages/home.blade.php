@@ -156,7 +156,7 @@
     document.getElementById('final-wa-btn').href = WhatsAppLink.general();
 
     const shipping = window.DIWAN_SETTINGS.shippingCost;
-    if (shipping > 0) document.getElementById('trust-shipping').textContent = 'التوصيل بـ ' + Products.formatPrice(shipping);
+    if (shipping > 0) document.getElementById('trust-shipping').textContent = 'توصيل اختياري بـ ' + Products.formatPrice(shipping);
 
     // التصنيفات والمنتجات بالتوازي (طلبان في نفس الوقت بدل انتظار أحدهما للآخر)
     const [categories, all] = await Promise.all([Products.loadCategories(), Products.loadAll()]);
