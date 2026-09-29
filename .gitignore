@@ -1,18 +1,55 @@
+# Dependencies
 /vendor
 /node_modules
+
+# Environment files (secrets) — keep only the template
+.env
+.env.*
+!.env.example
+
+# Generated / runtime files
 /public/hot
 /public/storage
+/public/build
 /storage/*.key
-.env
-.env.backup
-.env.production
+/storage/pail
+/bootstrap/cache/*.php
 .phpunit.result.cache
-Homestead.json
-Homestead.yaml
+/.phpunit.cache
+
+# Keys, certificates and credentials
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+auth.json
+
+# Databases and backups
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.sql.gz
+*.dump
+*.bak
+/backups
+
+# Logs
+*.log
 npm-debug.log
 yarn-error.log
+
+# Local tooling
+Homestead.json
+Homestead.yaml
 /.idea
 /.vscode
-/public/build
-/.phpunit.cache
-/storage/pail
+/.fleet
+/.claude
