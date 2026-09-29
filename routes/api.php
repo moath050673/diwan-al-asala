@@ -29,7 +29,7 @@ Route::get('/health', fn () => response()->json(['success' => true, 'status' => 
 // ---------- تتطلب تسجيل دخول (Sanctum) ----------
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
-    Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/auth/change-password', [AuthController::class, 'changePassword'])->middleware('throttle:password');
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     // ---------- admin أو staff ----------

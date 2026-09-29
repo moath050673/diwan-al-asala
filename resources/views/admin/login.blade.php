@@ -31,7 +31,11 @@
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.message || 'فشل تسجيل الدخول');
       AdminAuth.setToken(json.data.token);
-      if (json.data.mustChangePassword) alert('يجب تغيير كلمة المرور عند أول تسجيل دخول.');
+      if (json.data.mustChangePassword) {
+        alert('يجب تغيير كلمة المرور عند أول تسجيل دخول.');
+        window.location.href = '/admin/settings#password';
+        return;
+      }
       window.location.href = '/admin/dashboard';
     } catch (err) {
       errEl.textContent = err.message;

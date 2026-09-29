@@ -24,6 +24,14 @@ class AdminUserSeeder extends Seeder
             return;
         }
 
+        // على الموقع الحقيقي: لا نقبل كلمة المرور الافتراضية أو كلمة مرور ضعيفة
+        $weak = strlen($password) < 10 || str_contains(strtoupper($password), 'CHANGE_ME')
+            || !preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password);
+        if ($weak && app()->isProduction()) {
+            $this->command->error('ADMIN_PASSWORD ضعيفة: 10 أحرف على الأقل تحتوي حروفًا وأرقامًا، وليست القيمة الافتراضية.');
+            return;
+        }
+
         if (User::where('email', $email)->exists()) {
             $this->command->info('يوجد مستخدم بهذا البريد الإلكتروني مسبقًا.');
             return;

@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // حذف رموز الدخول (Sanctum tokens) المنتهية يوميًا — يتطلب تشغيل php artisan schedule:run عبر cron
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
+
+// نسخة احتياطية يومية لقاعدة البيانات (بما فيها الصور) الساعة 3 فجرًا بتوقيت اليمن
+Schedule::command('backup:run')->dailyAt('03:00')->timezone('Asia/Aden')->withoutOverlapping();

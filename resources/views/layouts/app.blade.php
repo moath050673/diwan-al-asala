@@ -3,10 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>@yield('title', 'متجر ديوان الأصالة | عطور وبخور وزباد')</title>
-<meta name="description" content="@yield('description', 'متجر ديوان الأصالة، متخصص في بيع الزباد والبخور والعطور الأصيلة، توصيل داخل صنعاء اليمن.')">
-<link rel="canonical" href="{{ url()->current() }}">
+@php
+  // بيانات SEO لكل صفحة: كل صفحة تحدد title/description، وصفحة المنتج تحدد og_image و og_type
+  $seoTitle = trim($__env->yieldContent('title', 'متجر ديوان الأصالة | عطور وبخور وزباد'));
+  $seoDescription = trim($__env->yieldContent('description', 'متجر ديوان الأصالة، متخصص في بيع الزباد والبخور والعطور الأصيلة، توصيل داخل صنعاء اليمن.'));
+  $seoImage = trim($__env->yieldContent('og_image')) ?: url('/img/logo.png');
+  $seoUrl = url()->current();
+@endphp
+<title>{{ $seoTitle }}</title>
+<meta name="description" content="{{ $seoDescription }}">
+<meta name="robots" content="@yield('robots', 'index, follow')">
+<link rel="canonical" href="{{ $seoUrl }}">
 <link rel="icon" href="/img/logo.png">
+<meta name="theme-color" content="#2E2318">
+{{-- مشاركة الروابط على واتساب/فيسبوك/تويتر (Open Graph + Twitter Cards) --}}
+<meta property="og:site_name" content="متجر ديوان الأصالة">
+<meta property="og:locale" content="ar_YE">
+<meta property="og:type" content="@yield('og_type', 'website')">
+<meta property="og:title" content="{{ $seoTitle }}">
+<meta property="og:description" content="{{ $seoDescription }}">
+<meta property="og:url" content="{{ $seoUrl }}">
+<meta property="og:image" content="{{ $seoImage }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $seoTitle }}">
+<meta name="twitter:description" content="{{ $seoDescription }}">
+<meta name="twitter:image" content="{{ $seoImage }}">
+@stack('structured-data')
 {{-- الخطوط المعرّفة في style.css (--font-display / --font-body) — لم تكن تُحمَّل من قبل --}}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

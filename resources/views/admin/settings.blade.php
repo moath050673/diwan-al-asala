@@ -20,6 +20,16 @@
         <button type="submit" class="btn btn-primary">حفظ الإعدادات</button>
       </form>
     </div>
+
+    <div class="card" id="password" style="margin-top:20px;">
+      <h3 style="margin-bottom:14px;">تغيير كلمة المرور</h3>
+      <form id="password-form" autocomplete="off">
+        <div class="form-row"><label>كلمة المرور الحالية</label><input type="password" name="currentPassword" required autocomplete="current-password"></div>
+        <div class="form-row"><label>كلمة المرور الجديدة (10 أحرف على الأقل، حروف وأرقام)</label><input type="password" name="newPassword" required minlength="10" maxlength="128" autocomplete="new-password"></div>
+        <div class="form-row"><label>تأكيد كلمة المرور الجديدة</label><input type="password" name="confirmPassword" required autocomplete="new-password"></div>
+        <button type="submit" class="btn btn-primary">تغيير كلمة المرور</button>
+      </form>
+    </div>
   </main>
 </div>
 @endsection
@@ -41,6 +51,26 @@
       return;
     }
     alert('تم حفظ الإعدادات بنجاح');
+  });
+
+  const pwdForm = document.getElementById('password-form');
+  pwdForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(pwdForm).entries());
+    if (data.newPassword !== data.confirmPassword) {
+      alert('تأكيد كلمة المرور غير مطابق');
+      return;
+    }
+    const res = await adminRequest('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword: data.currentPassword, newPassword: data.newPassword }),
+    });
+    if (!res || res.success === false || res.errors) {
+      alert(apiError(res, 'تعذّر تغيير كلمة المرور'));
+      return;
+    }
+    pwdForm.reset();
+    alert('تم تغيير كلمة المرور بنجاح. تم تسجيل الخروج من الأجهزة الأخرى.');
   });
 </script>
 @endpush

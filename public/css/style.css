@@ -434,7 +434,8 @@ select:focus-visible, textarea:focus-visible {
 
 /* ---------- Breadcrumb / page header ---------- */
 .page-header { background: var(--color-surface); color: var(--color-text); padding: 30px 0; border-bottom: 1px solid var(--color-border); }
-.page-header h1 { font-family: var(--font-display); color: var(--color-primary); font-size: 28px; }
+.page-header h1, .page-header .page-title { font-family: var(--font-display); color: var(--color-primary); font-size: 28px; }
+.page-header .page-title { font-weight: bold; }
 .breadcrumb { font-size: 13px; color: var(--color-text-muted); margin-top: 6px; }
 .breadcrumb a:hover { color: var(--color-primary); }
 

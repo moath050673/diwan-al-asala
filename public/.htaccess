@@ -1,9 +1,15 @@
+# Never list directory contents (independent of mod_negotiation)
+Options -Indexes
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
+        Options -MultiViews
     </IfModule>
 
     RewriteEngine On
+
+    # Block hidden files (.env, .git...) if they ever end up inside public/
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
 
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

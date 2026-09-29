@@ -44,6 +44,26 @@ return [
         'chat_id' => env('TELEGRAM_CHAT_ID'),
     ],
 
+    // تنبيه على Telegram عند حدوث خطأ في الموقع (نفس البوت ونفس المحادثة) — مرة كل 30 دقيقة لنفس الخطأ
+    'error_alerts' => [
+        'telegram' => (bool) env('ERROR_ALERTS_TELEGRAM', true),
+    ],
+
+    // النسخ الاحتياطي لقاعدة البيانات (php artisan backup:run / backup:restore)
+    'backup' => [
+        'disk' => env('BACKUP_DISK', 'local'),            // أين تُحفظ النسخة (local = storage/app/private/backups)
+        'keep' => (int) env('BACKUP_KEEP', 7),             // عدد النسخ المحفوظة على القرص
+        'telegram' => (bool) env('BACKUP_TELEGRAM', false), // إرسال النسخة لمحادثة Telegram (نسخة خارج السيرفر)
+        'password' => env('BACKUP_PASSWORD'),              // تشفير النسخة (إلزامي عند الإرسال لـ Telegram)
+    ],
+
+    // تحسين الصور المرفوعة تلقائيًا (يتطلب إضافة GD — متوفرة على Laravel Cloud)
+    'images' => [
+        'max_dimension' => 1600, // أكبر عرض/ارتفاع للصورة الأصلية بعد التصغير
+        'thumb_dimension' => 600, // نسخة مصغّرة لبطاقات المنتجات
+        'quality' => 82,          // جودة WebP/JPEG (82 = فرق غير ملحوظ بالعين)
+    ],
+
     // الحد الأقصى لعدد العناصر في صفحة واحدة من أي قائمة في الـ API
     'max_per_page' => 100,
 ];

@@ -15,7 +15,13 @@ class EnsureRole
     {
         $user = $request->user();
 
-        if (!$user || !in_array($user->role, $roles)) {
+        // حساب موقوف: نُبطل رمزه فورًا — إيقاف الحساب يجب أن يطرده من لوحة التحكم حتى لو كان مسجلًا للدخول
+        if ($user && $user->status !== 'active') {
+            $user->currentAccessToken()?->delete();
+            return response()->json(['success' => false, 'message' => 'هذا الحساب موقوف'], 401);
+        }
+
+        if (!$user || !in_array($user->role, $roles, true)) {
             return response()->json(['success' => false, 'message' => 'لا تملك صلاحية الوصول إلى هذا المورد'], 403);
         }
 

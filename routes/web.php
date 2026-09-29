@@ -16,6 +16,10 @@ Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 
+// ---------- SEO ----------
+Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('robots');
+Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap'])->name('sitemap');
+
 // ---------- الملفات العامة المخزنة في قاعدة البيانات (صور المنتجات) ----------
 Route::get('/media/{path}', [\App\Http\Controllers\MediaController::class, 'show'])
     ->where('path', '[A-Za-z0-9_\-./]+')

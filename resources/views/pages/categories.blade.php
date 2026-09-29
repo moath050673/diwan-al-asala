@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'التصنيفات | متجر ديوان الأصالة')
+@section('description', 'تصفح تصنيفات متجر ديوان الأصالة: الزباد، البخور، العطور، الميداليات وغيرها من المنتجات اليمنية الأصيلة.')
 @section('content')
 <div class="page-header">
   <div class="container"><h1>التصنيفات</h1><div class="breadcrumb"><a href="/">الرئيسية</a> / التصنيفات</div></div>

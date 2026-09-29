@@ -78,22 +78,16 @@ class ProductController extends Controller
             'category' => $p->category->slug,
             // صورة واحدة رئيسية جاهزة للاستخدام المباشر في بطاقة المنتج
             'image' => $primary ? $this->resolveImageUrl($primary->image_url) : null,
+            // نسخة مصغّرة محسّنة لبطاقات المنتجات (الصور القديمة: الصورة الأصلية)
+            'thumb' => $primary ? $this->resolveImageUrl($primary->thumb_url ?: $primary->image_url) : null,
             // كل الصور بالترتيب (لصفحة تفاصيل المنتج لاحقًا)
             'images' => $images->map(fn ($img) => $this->resolveImageUrl($img->image_url))->values(),
         ];
     }
 
-    /**
-     * يبني رابطًا صالحًا للاستخدام المباشر في الواجهة الأمامية بغض النظر
-     * عن شكل القيمة المخزَّنة في image_url (رابط مطلق، مسار يبدأ بـ /storage،
-     * أو حتى مجرد اسم ملف نسبي أُدخل يدويًا من قاعدة البيانات).
-     */
     private function resolveImageUrl(?string $path): ?string
     {
-        if (!$path) return null;
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
-        if (str_starts_with($path, '/')) return $path;
-        return '/storage/'.ltrim($path, '/');
+        return ProductImage::resolveUrl($path);
     }
 
     // ---------- Admin only ----------
@@ -184,8 +178,9 @@ class ProductController extends Controller
 
         validator(['images' => $files], [
             'images' => 'required|array|min:1|max:'.self::MAX_IMAGES,
-            'images.*' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'images.*' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120|dimensions:max_width=8000,max_height=8000',
         ], [
+            'images.*.dimensions' => 'أبعاد الصورة كبيرة جدًا (الحد الأقصى 8000 بكسل)',
             'images.required' => 'اختر صورة واحدة على الأقل',
             'images.*.mimes' => 'الصور المسموحة: JPG أو PNG أو WEBP',
             'images.*.max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت',
@@ -199,7 +194,7 @@ class ProductController extends Controller
         foreach ($files as $file) {
             $created[] = ProductImage::create([
                 'product_id' => $product->id,
-                'image_url' => $this->images->store($file),
+                ...$this->images->store($file), // image_url + thumb_url (محسّنة تلقائيًا)
                 'sort_order' => $nextOrder++,
             ]);
         }
@@ -215,6 +210,7 @@ class ProductController extends Controller
         $image = ProductImage::where('product_id', $id)->findOrFail($imageId);
 
         $this->images->delete($image->image_url);
+        $this->images->delete($image->thumb_url);
         $image->delete();
 
         return response()->json(['success' => true, 'message' => 'تم حذف الصورة']);

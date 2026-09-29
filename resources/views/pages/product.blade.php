@@ -1,11 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'تفاصيل المنتج | متجر ديوان الأصالة')
+@section('title', $product->name.' | متجر ديوان الأصالة')
+@section('description', $seoDescription)
+@section('og_type', 'product')
+@if ($seoImage)
+  @section('og_image', $seoImage)
+@endif
+
+@push('structured-data')
+<script type="application/ld+json">{!! json_encode($productSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+@endpush
 
 @section('content')
 <div class="page-header">
   <div class="container">
-    <h1 id="crumb-name">تفاصيل المنتج</h1>
+    {{-- عنوان الصفحة الرئيسي (h1) هو اسم المنتج داخل التفاصيل — هنا عنوان مرئي فقط بنفس الشكل --}}
+    <div class="page-title" id="crumb-name">{{ $product->name }}</div>
     <div class="breadcrumb"><a href="/">الرئيسية</a> / <a href="/products">المنتجات</a> / <span id="crumb-current"></span></div>
   </div>
 </div>

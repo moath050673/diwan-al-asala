@@ -92,6 +92,23 @@ Laravel 12, PHP 8.2+, MySQL/MariaDB. Deployed on Laravel Cloud (Starter plan).
    `--class=CategorySeeder`, `--class=AdminUserSeeder`.
 - Never commit `.env`, tokens, or passwords.
 
+## Operations (production)
+- `php artisan app:health` — health audit (DB, migrations, storage disks, cache, queue, mail,
+  HTTPS, env, permissions, GD/WebP, OPcache, backups). Never prints secrets.
+- `php artisan backup:run` — full DB backup incl. files stored in `stored_files`
+  (`App\Services\DatabaseBackup`, gzip JSON-lines, optional AES encryption with
+  `BACKUP_PASSWORD`). Scheduled daily at 03:00 Asia/Aden; optionally sent to Telegram
+  (`BACKUP_TELEGRAM=true`, password required). Never use a `database`-driver disk as `BACKUP_DISK`.
+- `php artisan backup:restore latest|<path>|<https-url> --force` — restores inside one
+  transaction and saves a `pre-restore-*` safety backup first.
+- Errors are logged with URL/IP context and, when `ERROR_ALERTS_TELEGRAM=true`, alerted on
+  Telegram (`App\Services\ErrorAlerter`, throttled per error for 30 min).
+- Uploaded images go through `App\Services\ImageOptimizer` (GD): max 1600px + 600px thumbnail,
+  WebP when available, EXIF/GPS stripped. Without GD the original is stored.
+- Tests never call real services (`Http::preventStrayRequests()`, Telegram vars blanked in
+  `phpunit.xml`). To include the GD image test locally:
+  `php -d extension=gd vendor/bin/phpunit`.
+
 ## General
 - Always write clean and maintainable code.
 - Never break existing functionality.

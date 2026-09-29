@@ -10,6 +10,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Services\ImageOptimizer;
 use Tests\TestCase;
 
 /** إعداد Laravel Cloud Starter: الصور والإيصالات داخل قاعدة البيانات */
@@ -51,11 +53,12 @@ class DatabaseStorageTest extends TestCase
             ->assertCreated()->json('data.images.0.url');
 
         $this->assertStringStartsWith('/media/products/', $url);
-        $this->assertSame(2, DB::table('stored_files')->where('bucket', 'public')->count());
+        $perImage = $this->optimizer()->available() ? 2 : 1; // optimized image + thumbnail
+        $this->assertSame(2 * $perImage, DB::table('stored_files')->where('bucket', 'public')->count());
 
         // الزائر يرى الصورة بدون تسجيل دخول
-        $res = $this->get($url)->assertOk()->assertHeader('Content-Type', 'image/png');
-        $this->assertSame(base64_decode(self::PNG), $res->getContent());
+        $res = $this->get($url)->assertOk()->assertHeader('Content-Type', $this->expectedMime());
+        $this->assertSame(Storage::disk('db_public')->get(Str::after($url, '/media/')), $res->getContent());
 
         // تظهر في بيانات المنتج للمتجر
         $this->getJson("/api/products/{$product->id}")->assertJsonPath('data.image', $url);
@@ -63,7 +66,7 @@ class DatabaseStorageTest extends TestCase
         // حذف الصورة يحذف الملف من قاعدة البيانات
         $imageId = $product->images()->orderBy('sort_order')->value('id');
         $this->deleteJson("/api/products/{$product->id}/images/{$imageId}")->assertOk();
-        $this->assertSame(1, DB::table('stored_files')->where('bucket', 'public')->count());
+        $this->assertSame($perImage, DB::table('stored_files')->where('bucket', 'public')->count());
         $this->get($url)->assertNotFound();
     }
 
@@ -85,12 +88,23 @@ class DatabaseStorageTest extends TestCase
         $this->get($payment->receipt_url)->assertUnauthorized();
 
         $this->withToken($this->adminToken())->get($payment->receipt_url)
-            ->assertOk()->assertHeader('Content-Type', 'image/png');
+            ->assertOk()->assertHeader('Content-Type', $this->expectedMime());
     }
 
     public function test_media_route_rejects_path_traversal()
     {
         $this->get('/media/../.env')->assertNotFound();
         $this->get('/media/products/..%2F..%2F.env')->assertNotFound();
+    }
+
+    private function optimizer(): ImageOptimizer
+    {
+        return app(ImageOptimizer::class);
+    }
+
+    /** uploads are converted to WebP when GD supports it */
+    private function expectedMime(): string
+    {
+        return $this->optimizer()->supportsWebp() ? 'image/webp' : 'image/png';
     }
 }

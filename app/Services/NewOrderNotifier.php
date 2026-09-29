@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Order;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -15,12 +14,14 @@ use Illuminate\Support\Facades\Mail;
  */
 class NewOrderNotifier
 {
+    public function __construct(private TelegramClient $telegram) {}
+
     public function notify(Order $order): void
     {
         $order->loadMissing('items');
         $message = $this->message($order);
 
-        $this->sendTelegram($message);
+        $this->telegram->sendMessage($message);
         $this->sendEmail($order, $message);
     }
 
@@ -38,27 +39,6 @@ class NewOrderNotifier
             ."💰 الإجمالي: {$total} ريال\n"
             ."💳 {$method}\n\n"
             .rtrim((string) config('app.url'), '/').'/admin/orders';
-    }
-
-    private function sendTelegram(string $message): void
-    {
-        $token = config('store.telegram.bot_token');
-        $chatIds = array_filter(array_map('trim', explode(',', (string) config('store.telegram.chat_id'))));
-        if (!$token || !$chatIds) {
-            return;
-        }
-
-        foreach ($chatIds as $chatId) {
-            try {
-                Http::timeout(8)->asForm()->post("https://api.telegram.org/bot{$token}/sendMessage", [
-                    'chat_id' => $chatId,
-                    'text' => $message,
-                    'disable_web_page_preview' => 'true',
-                ])->throw();
-            } catch (\Throwable $e) {
-                Log::warning('تعذّر إرسال إشعار Telegram: '.$e->getMessage());
-            }
-        }
     }
 
     private function sendEmail(Order $order, string $message): void

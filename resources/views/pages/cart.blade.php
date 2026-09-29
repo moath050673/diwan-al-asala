@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'سلة المشتريات | متجر ديوان الأصالة')
+@section('robots', 'noindex, follow')
 @section('content')
 <div class="page-header">
   <div class="container"><h1>سلة المشتريات</h1><div class="breadcrumb"><a href="/">الرئيسية</a> / السلة</div></div>

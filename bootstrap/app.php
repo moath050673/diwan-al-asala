@@ -32,6 +32,15 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson()
         );
+
+        // كل خطأ يُسجَّل مع الصفحة التي حدث فيها (يسهّل تتبعه في Logs على Laravel Cloud)
+        $exceptions->context(fn () => app()->runningInConsole() ? [] : [
+            'url' => request()->method().' '.request()->fullUrl(),
+            'ip' => request()->ip(),
+        ]);
+
+        // تنبيه فوري على Telegram للأخطاء الحقيقية (500...) — التسجيل العادي في السجل يستمر كما هو
+        $exceptions->reportable(fn (\Throwable $e) => app(\App\Services\ErrorAlerter::class)->alert($e));
     })->create();
 
 return $app;

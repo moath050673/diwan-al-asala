@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'تواصل معنا | متجر ديوان الأصالة')
+@section('description', 'تواصل مع متجر ديوان الأصالة عبر واتساب أو نموذج التواصل للاستفسار عن المنتجات والطلبات والتوصيل داخل صنعاء.')
 @section('content')
 <div class="page-header"><div class="container"><h1>تواصل معنا</h1><div class="breadcrumb"><a href="/">الرئيسية</a> / تواصل معنا</div></div></div>
 <div class="section">

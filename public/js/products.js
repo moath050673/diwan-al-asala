@@ -128,7 +128,8 @@ const Products = (() => {
     if (p.image) {
       // القيمة داخل onerror هي كود JavaScript — نسمح فقط بمفاتيح معروفة بدل تهريبها
       const cat = Object.prototype.hasOwnProperty.call(CATEGORY_PLACEHOLDER_ICONS, p.category) ? p.category : 'default';
-      return `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="product-thumb-img" loading="lazy" onerror="handleThumbImgError(this,'${cat}')">`;
+      // النسخة المصغّرة المحسّنة (أخف بكثير) — والأصلية إن لم تتوفر
+      return `<img src="${escapeHtml(p.thumb || p.image)}" alt="${escapeHtml(p.name)}" class="product-thumb-img" loading="lazy" decoding="async" onerror="handleThumbImgError(this,'${cat}')">`;
     }
     return placeholderMarkup(p.category);
   }

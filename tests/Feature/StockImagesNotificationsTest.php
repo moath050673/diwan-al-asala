@@ -116,7 +116,8 @@ class StockImagesNotificationsTest extends TestCase
 
         $this->deleteJson("/api/products/{$product->id}/images/{$ids[0]}")->assertOk();
         $this->assertSame(2, $product->images()->count());
-        $this->assertCount(2, Storage::disk('public')->allFiles('products'));
+        // with GD every image also has an optimized thumbnail
+        $this->assertCount(2 * $this->filesPerImage(), Storage::disk('public')->allFiles('products'));
     }
 
     public function test_images_use_configured_cloud_disk()
@@ -129,7 +130,7 @@ class StockImagesNotificationsTest extends TestCase
             ->assertCreated()->json('data.images.0.url');
 
         $this->assertStringStartsWith(Storage::disk('images_bucket')->url(''), $url);
-        $this->assertCount(1, Storage::disk('images_bucket')->allFiles('products'));
+        $this->assertCount($this->filesPerImage(), Storage::disk('images_bucket')->allFiles('products'));
 
         $imageId = $product->images()->value('id');
         $this->deleteJson("/api/products/{$product->id}/images/{$imageId}")->assertOk();
@@ -182,5 +183,10 @@ class StockImagesNotificationsTest extends TestCase
 
         Http::assertSentCount(2);
         Http::assertSent(fn ($r) => str_contains($r->url(), 'botTOKEN/sendMessage') && str_contains($r['text'], $order->order_number));
+    }
+
+    private function filesPerImage(): int
+    {
+        return app(\App\Services\ImageOptimizer::class)->available() ? 2 : 1;
     }
 }

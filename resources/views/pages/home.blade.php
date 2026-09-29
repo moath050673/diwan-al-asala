@@ -6,6 +6,10 @@
 <link rel="stylesheet" href="/css/home.css">
 @endpush
 
+@push('structured-data')
+<script type="application/ld+json">{!! json_encode($storeSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+@endpush
+
 @section('content')
 {{-- ========== الواجهة الرئيسية: مشهد ثلاثي الأبعاد + دخان بخور متصاعد ========== --}}
 <section class="landing-hero" id="landing-hero">

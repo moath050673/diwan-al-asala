@@ -38,7 +38,7 @@ class StoreOrderRequest extends FormRequest
             'transactionNumber' => 'nullable|string|max:100',
             // mimes صريحة: قاعدة image وحدها تقبل SVG في Laravel 11، وملف SVG يُخدَّم من نفس
             // النطاق يمكن أن يحتوي JavaScript (XSS) يُنفَّذ عند فتح المدير للإيصال.
-            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096|dimensions:max_width=8000,max_height=8000',
             'items' => 'required|array|min:1|max:50',
             'items.*.productId' => 'required|integer',
             'items.*.quantity' => 'required|integer|min:1|max:1000',

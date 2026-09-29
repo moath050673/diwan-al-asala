@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'تم استلام طلبك | متجر ديوان الأصالة')
+@section('robots', 'noindex, follow')
 @section('content')
 <div class="section">
   <div class="container" style="max-width:600px;">

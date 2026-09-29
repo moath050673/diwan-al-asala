@@ -32,6 +32,15 @@ return [
     'unique' => ':attribute مستخدم من قبل.',
     'uploaded' => 'تعذّر رفع :attribute.',
     'url' => ':attribute يجب أن يكون رابطًا صحيحًا يبدأ بـ http أو https.',
+    'confirmed' => 'تأكيد :attribute غير مطابق.',
+    'dimensions' => 'أبعاد :attribute كبيرة جدًا.',
+    'password' => [
+        'letters' => ':attribute يجب أن تحتوي على حرف واحد على الأقل.',
+        'mixed' => ':attribute يجب أن تحتوي على حرف كبير وحرف صغير.',
+        'numbers' => ':attribute يجب أن تحتوي على رقم واحد على الأقل.',
+        'symbols' => ':attribute يجب أن تحتوي على رمز واحد على الأقل.',
+        'uncompromised' => ':attribute ظهرت في تسريبات بيانات سابقة، اختر كلمة مرور أخرى.',
+    ],
 
     'attributes' => [
         // الطلب
