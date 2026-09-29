@@ -16,6 +16,11 @@ Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 
+// ---------- الملفات العامة المخزنة في قاعدة البيانات (صور المنتجات) ----------
+Route::get('/media/{path}', [\App\Http\Controllers\MediaController::class, 'show'])
+    ->where('path', '[A-Za-z0-9_\-./]+')
+    ->name('media');
+
 // ---------- لوحة التحكم ----------
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [PageController::class, 'adminLogin'])->name('login');

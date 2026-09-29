@@ -17,6 +17,22 @@ return [
             'visibility' => 'public',
             'throw' => false,
         ],
+
+        // ---------- تخزين دائم داخل قاعدة البيانات (Laravel Cloud Starter بدون Buckets) ----------
+        // صور المنتجات: تُعرض للزوار عبر /media/{path}
+        'db_public' => [
+            'driver' => 'database',
+            'bucket' => 'public',
+            'url' => '/media',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+        // إيصالات الدفع: لا تُعرض إلا للمدير عبر /api/payments/{id}/receipt
+        'db_private' => [
+            'driver' => 'database',
+            'bucket' => 'private',
+            'throw' => false,
+        ],
     ],
 
     'links' => [

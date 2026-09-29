@@ -29,8 +29,10 @@ return [
         'password' => env('ADMIN_PASSWORD'),
     ],
 
-    // أين تُحفظ الملفات المرفوعة. على Laravel Cloud اجعلهما قرص التخزين السحابي (مثل s3)،
-    // لأن ملفات السيرفر نفسه تُحذف مع كل نشر جديد.
+    // أين تُحفظ الملفات المرفوعة (أي قرص من config/filesystems.php):
+    // - محليًا: public / local (الافتراضي)
+    // - Laravel Cloud Starter (ملفات السيرفر تُمسح مع كل نشر/سبات): db_public / db_private
+    // - لاحقًا مع Object Storage أو S3: اسم قرص الـ Bucket — بدون أي تعديل في الكود
     'disks' => [
         'images' => env('PRODUCT_IMAGES_DISK', 'public'),   // صور المنتجات (عامة)
         'receipts' => env('RECEIPTS_DISK', 'local'),        // إيصالات الدفع (خاصة — للمدير فقط)
