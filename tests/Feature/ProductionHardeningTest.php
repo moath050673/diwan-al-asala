@@ -50,6 +50,16 @@ class ProductionHardeningTest extends TestCase
         $this->get('/admin')->assertHeader('X-Robots-Tag', 'noindex, nofollow')->assertSee('noindex', false);
     }
 
+    public function test_pages_do_not_depend_on_sessions()
+    {
+        // Laravel Cloud may set SESSION_DRIVER=database — pages must still work without a sessions table
+        config(['session.driver' => 'database']);
+
+        foreach (['/', '/products', '/robots.txt', '/sitemap.xml', '/admin'] as $url) {
+            $this->get($url)->assertOk()->assertCookieMissing(config('session.cookie'))->assertCookieMissing('XSRF-TOKEN');
+        }
+    }
+
     public function test_deactivated_user_token_is_rejected_and_revoked()
     {
         $user = $this->user();

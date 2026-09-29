@@ -17,6 +17,16 @@ $app = Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        // صفحات الموقع ثابتة (GET فقط): البيانات عبر الـ API، ولوحة التحكم تعمل برمز Bearer.
+        // لا حاجة لجلسات أو كوكيز أو CSRF — إزالتها تمنع تعطل الموقع بسبب إعداد الجلسات على
+        // الاستضافة (مثل SESSION_DRIVER=database بدون جدول) وتسرّع كل صفحة.
+        $middleware->web(remove: [
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+        ]);
         // الاستضافة (Laravel Cloud) تمرر الطلبات عبر موازن أحمال: بدون هذا يُعامل كل العملاء
         // كأنهم IP واحد (فيشتركون في حد الطلبات)، ولا يُكتشف أن الاتصال HTTPS.
         $middleware->trustProxies(at: '*');
