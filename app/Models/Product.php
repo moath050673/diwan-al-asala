@@ -21,6 +21,13 @@ class Product extends Model
         ];
     }
 
+    protected static function booted()
+    {
+        // إضافة/تعديل/إخفاء منتج يُحدّث sitemap.xml فورًا (بدل انتظار انتهاء الكاش)
+        static::saved(fn () => \App\Http\Controllers\SeoController::flushSitemap());
+        static::deleted(fn () => \App\Http\Controllers\SeoController::flushSitemap());
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);

@@ -153,7 +153,7 @@ const OrderAlerts = (() => {
     try {
       const n = new Notification(`طلب جديد #${order.orderNumber}`, {
         body: `${order.customerName} — ${formatPrice(order.total)}`,
-        icon: '/img/logo.png',
+        icon: '/img/favicon.png',
         tag: 'order-' + order.id,
       });
       n.onclick = () => { window.focus(); window.location.href = '/admin/orders?open=' + order.id; };

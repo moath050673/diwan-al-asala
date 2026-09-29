@@ -14,7 +14,7 @@
 <meta name="description" content="{{ $seoDescription }}">
 <meta name="robots" content="@yield('robots', 'index, follow')">
 <link rel="canonical" href="{{ $seoUrl }}">
-<link rel="icon" href="/img/logo.png">
+<link rel="icon" type="image/png" href="/img/favicon.png">
 <meta name="theme-color" content="#2E2318">
 {{-- مشاركة الروابط على واتساب/فيسبوك/تويتر (Open Graph + Twitter Cards) --}}
 <meta property="og:site_name" content="متجر ديوان الأصالة">

@@ -21,6 +21,18 @@ class SeoController extends Controller
         ['terms', 'yearly', '0.2'],
     ];
 
+    private const VERSION_KEY = 'seo.sitemap.version';
+
+    /** يُستدعى عند حفظ/حذف منتج — نسخة جديدة من المفتاح تجعل الكاش القديم غير مستخدم */
+    public static function flushSitemap(): void
+    {
+        try {
+            Cache::forever(self::VERSION_KEY, (string) microtime(true));
+        } catch (\Throwable $e) {
+            report($e); // الكاش غير متاح — لا يجب أن يمنع حفظ المنتج
+        }
+    }
+
     public function robots()
     {
         // لا نحجب /api: محركات البحث تحتاجه لعرض المنتجات (الصفحات تجلبها عبر JavaScript)
@@ -39,8 +51,9 @@ class SeoController extends Controller
 
     public function sitemap()
     {
-        // يُعاد بناؤه كل ساعة كحد أقصى (استعلام واحد خفيف)
-        $xml = Cache::remember('seo.sitemap.'.md5(url('/')), 3600, function () {
+        // مخزن مؤقتًا ساعة، ويُمسح فورًا عند أي تعديل على المنتجات (flushSitemap)
+        $key = 'seo.sitemap.'.Cache::get(self::VERSION_KEY, '0').'.'.md5(url('/'));
+        $xml = Cache::remember($key, 3600, function () {
             $urls = collect(self::STATIC_PAGES)->map(fn ($p) => [
                 'loc' => route($p[0]), 'changefreq' => $p[1], 'priority' => $p[2], 'lastmod' => null,
             ]);

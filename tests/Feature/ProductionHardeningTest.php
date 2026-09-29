@@ -139,6 +139,10 @@ class ProductionHardeningTest extends TestCase
             ->assertSee(route('product', $product->id), false)
             ->assertDontSee(route('product', $hidden->id).'<', false)
             ->assertSee(route('about'), false);
+
+        // a new product appears immediately (cache is invalidated on save)
+        $new = $this->product();
+        $this->get('/sitemap.xml')->assertSee(route('product', $new->id).'<', false);
     }
 
     // ---------- Image optimization ----------

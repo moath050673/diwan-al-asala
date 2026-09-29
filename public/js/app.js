@@ -36,7 +36,7 @@ function renderHeader(activePage = '') {
     <div class="header-top">توصيل داخل صنعاء 🚚 | تواصل معنا عبر واتساب للاستفسار الفوري</div>
     <div class="container header-main">
       <a href="/" class="logo">
-        <img src="/img/logo.png" alt="ديوان الأصالة">
+        <img src="/img/logo-sm.webp" alt="ديوان الأصالة" width="118" height="144">
         <span>عطور · بخور · زباد</span>
       </a>
       <nav class="main-nav" id="main-nav">
@@ -106,7 +106,7 @@ function renderFooter() {
   el.innerHTML = `
     <div class="container footer-grid">
       <div class="footer-col">
-        <h4 style="display:flex; align-items:center; gap:10px;"><img src="/img/logo.png" alt="ديوان الأصالة" style="height:34px; width:auto;"> متجر ديوان الأصالة</h4>
+        <h4 style="display:flex; align-items:center; gap:10px;"><img src="/img/logo-sm.webp" alt="ديوان الأصالة" width="118" height="144" loading="lazy" style="height:34px; width:auto;"> متجر ديوان الأصالة</h4>
         <p>العطور | البخور | الزباد</p>
         <p>متجر متخصص في تقديم منتجات أصيلة ذات جودة عالية لعملائنا في صنعاء واليمن.</p>
         <div class="social-icons">
