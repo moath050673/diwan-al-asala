@@ -80,12 +80,11 @@ const Products = (() => {
     let result = [...list];
     if (category) result = result.filter(p => p.category === category);
     if (q) {
+      // بحث العميل: باسم المنتج أو اسم التصنيف فقط
       const query = q.trim().toLowerCase();
       result = result.filter(p =>
         p.name.toLowerCase().includes(query) ||
-        p.sku.toLowerCase().includes(query) ||
-        p.categoryName.toLowerCase().includes(query) ||
-        (p.desc || '').toLowerCase().includes(query)
+        (p.categoryName || '').toLowerCase().includes(query)
       );
     }
     if (minPrice) result = result.filter(p => p.price >= Number(minPrice));

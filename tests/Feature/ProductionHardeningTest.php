@@ -337,6 +337,16 @@ class ProductionHardeningTest extends TestCase
             ->assertSee('class="skip-link"', false);
     }
 
+    public function test_store_search_matches_only_product_name_or_category()
+    {
+        $product = $this->product(['name' => 'عود كمبودي', 'sku' => 'XYZ-777', 'description' => 'رائحة فاخرة']);
+
+        $this->getJson('/api/products?q=كمبودي')->assertJsonPath('data.0.id', $product->id);
+        $this->getJson('/api/products?q=بخور')->assertJsonPath('data.0.id', $product->id); // اسم التصنيف
+        $this->getJson('/api/products?q=XYZ-777')->assertJsonCount(0, 'data');
+        $this->getJson('/api/products?q=فاخرة')->assertJsonCount(0, 'data');
+    }
+
     // ---------- Optional delivery ----------
 
     private function orderPayload(array $extra = []): array

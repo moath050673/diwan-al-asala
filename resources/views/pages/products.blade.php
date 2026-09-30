@@ -16,7 +16,7 @@
     <div class="filters-bar">
       <div class="filter-group">
         <label for="f-search">بحث</label>
-        <input type="text" id="f-search" placeholder="اسم المنتج، SKU...">
+        <input type="text" id="f-search" placeholder="اسم المنتج أو التصنيف...">
       </div>
       <div class="filter-group">
         <label for="f-category">التصنيف</label>

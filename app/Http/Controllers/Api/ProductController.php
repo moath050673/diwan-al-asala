@@ -23,10 +23,10 @@ class ProductController extends Controller
             $query->whereHas('category', fn ($q) => $q->where('slug', $category));
         }
         if ($q = $this->queryText($request, 'q')) {
+            // بحث المتجر: باسم المنتج أو اسم التصنيف فقط (بحث لوحة التحكم يشمل SKU)
             $query->where(function ($sub) use ($q) {
                 $sub->where('name', 'like', "%{$q}%")
-                    ->orWhere('sku', 'like', "%{$q}%")
-                    ->orWhere('description', 'like', "%{$q}%");
+                    ->orWhereHas('category', fn ($c) => $c->where('name', 'like', "%{$q}%"));
             });
         }
         if (is_numeric($min = $request->query('minPrice'))) $query->where('price', '>=', $min);
