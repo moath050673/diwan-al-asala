@@ -35,7 +35,8 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+        // geolocation=(self): زر "موقعي الحالي" في صفحة إتمام الطلب (الموقع نفسه فقط، لا أي iframe)
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self), payment=(), usb=()');
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         $response->headers->set('Content-Security-Policy', self::CSP);
         // لا نكشف نسخة PHP (PHP يضيف هذه الترويسة بنفسه خارج استجابة Laravel)

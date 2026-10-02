@@ -146,6 +146,7 @@
         ? `🚚 نعم — ${formatPrice(o.shipping_cost)}`
         : '<span style="color:#b45309; font-weight:700;">🏪 لا — استلام من المتجر</span>'}</p>
       ${o.delivery ? `<p><strong>العنوان:</strong> ${escapeHtml(o.customer_address)}</p>` : ''}
+      ${o.delivery && o.map_url ? `<p><strong>الموقع:</strong> <a href="${escapeHtml(o.map_url)}" target="_blank" rel="noopener">📍 فتح موقع العميل على الخريطة</a></p>` : ''}
       <p><strong>ملاحظات:</strong> ${escapeHtml(o.notes || '—')}</p>
       <h4 style="margin:14px 0 8px;">المنتجات</h4>
       <ul>${o.items.map(i => `<li>${escapeHtml(i.product_name)} × ${escapeHtml(i.quantity)} = ${formatPrice(i.total)}</li>`).join('')}</ul>

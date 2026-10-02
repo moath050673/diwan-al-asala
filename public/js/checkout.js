@@ -40,11 +40,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   function applyDelivery() {
     const on = deliveryBox.checked;
     deliveryBox.closest('.delivery-option').classList.toggle('selected', on);
-    deliveryFields.forEach(group => {
-      group.style.display = on ? '' : 'none';
-      // حقول العنوان مطلوبة فقط مع التوصيل (حقل مخفي ومطلوب كان سيمنع إرسال النموذج)
-      group.querySelectorAll('input, textarea').forEach(el => { el.required = on; });
-    });
+    deliveryFields.forEach(group => { group.style.display = on ? '' : 'none'; });
+    updateAddressRequired();
 
     t = Cart.totals(items, on ? shipping : 0);
     totalsEl.innerHTML = `
@@ -53,6 +50,117 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="summary-row total"><span>الإجمالي النهائي</span><span>${Products.formatPrice(t.total)}</span></div>
     `;
   }
+  // ---------- موقع التوصيل من الخريطة (اختياري) ----------
+  // العميل يكتب عنوانه أو يحدد موقعه (أو كلاهما) — العنوان المكتوب مطلوب فقط إذا لم يُحدَّد موقع.
+  const latInput = document.getElementById('co-lat');
+  const lngInput = document.getElementById('co-lng');
+  const addressInput = document.getElementById('co-address');
+  const mapEl = document.getElementById('location-map');
+  const mapStatus = document.getElementById('map-status');
+  const mapClearBtn = document.getElementById('map-clear');
+  const SANAA = [15.3694, 44.1910];
+  let map = null;
+  let marker = null;
+  let leafletLoading = null;
+
+  function hasLocation() { return latInput.value !== '' && lngInput.value !== ''; }
+
+  // حقل مخفي ومطلوب كان سيمنع إرسال النموذج — لذلك المطلوب يتبع حالة التوصيل
+  function updateAddressRequired() {
+    const on = deliveryBox.checked;
+    document.getElementById('co-city').required = on;
+    addressInput.required = on && !hasLocation();
+  }
+
+  // Leaflet يُحمَّل عند الحاجة فقط — لا يثقل الصفحة على من يكتب عنوانه
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve();
+    if (leafletLoading) return leafletLoading;
+    leafletLoading = new Promise((resolve, reject) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = window.LEAFLET_ASSETS.css;
+      document.head.appendChild(css);
+      const js = document.createElement('script');
+      js.src = window.LEAFLET_ASSETS.js;
+      js.onload = resolve;
+      js.onerror = () => { leafletLoading = null; reject(); };
+      document.head.appendChild(js);
+    });
+    return leafletLoading;
+  }
+
+  function setLocation(lat, lng) {
+    latInput.value = lat.toFixed(7);
+    lngInput.value = lng.toFixed(7);
+    if (marker) marker.setLatLng([lat, lng]);
+    mapStatus.textContent = '✓ تم تحديد موقعك على الخريطة — يمكنك سحب العلامة لتعديله.';
+    mapStatus.classList.add('ok');
+    mapClearBtn.hidden = false;
+    updateAddressRequired();
+  }
+
+  async function openMap(center) {
+    try {
+      await loadLeaflet();
+    } catch (e) {
+      showToast('تعذّر تحميل الخريطة، يرجى كتابة العنوان بالتفصيل.', 'error');
+      return false;
+    }
+    mapEl.hidden = false;
+    const start = center || (hasLocation() ? [+latInput.value, +lngInput.value] : SANAA);
+    if (!map) {
+      map = L.map(mapEl).setView(start, center ? 16 : 13);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap',
+      }).addTo(map);
+      marker = L.marker(start, { draggable: true }).addTo(map);
+      marker.on('dragend', () => { const p = marker.getLatLng(); setLocation(p.lat, p.lng); });
+      map.on('click', (e) => setLocation(e.latlng.lat, e.latlng.lng));
+    } else {
+      map.invalidateSize();
+      map.setView(start, center ? 16 : map.getZoom());
+      marker.setLatLng(start);
+    }
+    return true;
+  }
+
+  document.getElementById('map-open').addEventListener('click', () => openMap());
+
+  document.getElementById('map-use-current').addEventListener('click', (e) => {
+    if (!navigator.geolocation || !window.isSecureContext) {
+      showToast('تحديد الموقع التلقائي غير متاح في هذا المتصفح، اختر موقعك من الخريطة.', 'error');
+      openMap();
+      return;
+    }
+    const btn = e.currentTarget;
+    const old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'جارِ تحديد موقعك...';
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      btn.disabled = false;
+      btn.textContent = old;
+      const { latitude, longitude } = pos.coords;
+      if (await openMap([latitude, longitude])) setLocation(latitude, longitude);
+    }, () => {
+      btn.disabled = false;
+      btn.textContent = old;
+      showToast('لم نتمكن من معرفة موقعك — تأكد من السماح بالوصول للموقع، أو اختره من الخريطة.', 'error');
+      openMap();
+    }, { enableHighAccuracy: true, timeout: 15000 });
+  });
+
+  mapClearBtn.addEventListener('click', () => {
+    latInput.value = '';
+    lngInput.value = '';
+    mapEl.hidden = true;
+    mapClearBtn.hidden = true;
+    mapStatus.textContent = 'اضغط على الخريطة أو اسحب العلامة إلى مكان التوصيل بالضبط.';
+    mapStatus.classList.remove('ok');
+    updateAddressRequired();
+  });
+
   deliveryBox.addEventListener('change', applyDelivery);
   applyDelivery();
 
@@ -140,7 +248,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (withDelivery) {
       fd.append('city', rawFd.get('city'));
       fd.append('area', rawFd.get('area') || '');
-      fd.append('address', rawFd.get('address'));
+      fd.append('address', rawFd.get('address') || '');
+      if (hasLocation()) {
+        fd.append('locationLat', latInput.value);
+        fd.append('locationLng', lngInput.value);
+      }
     }
     fd.append('notes', rawFd.get('notes') || '');
     fd.append('paymentMethod', rawFd.get('paymentMethod'));

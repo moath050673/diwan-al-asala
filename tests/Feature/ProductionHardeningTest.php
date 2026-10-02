@@ -396,6 +396,53 @@ class ProductionHardeningTest extends TestCase
             ->assertCreated()->assertJsonPath('data.total', 11000)->assertJsonPath('data.delivery', true);
     }
 
+    // ---------- Delivery location from the map ----------
+
+    public function test_map_location_can_replace_the_written_address()
+    {
+        config(['store.telegram.bot_token' => 'TOKEN', 'store.telegram.chat_id' => '111']);
+        Http::fake(['api.telegram.org/*' => Http::response(['ok' => true])]);
+
+        $this->postJson('/api/orders', $this->orderPayload([
+            'delivery' => '1', 'city' => 'صنعاء', 'locationLat' => '15.3547000', 'locationLng' => '44.2066000',
+        ]))
+            ->assertCreated()
+            ->assertJsonPath('data.mapUrl', 'https://www.google.com/maps?q=15.3547,44.2066');
+
+        $order = \App\Models\Order::firstOrFail();
+        $this->assertSame(15.3547, $order->location_lat);
+        $this->assertSame(44.2066, $order->location_lng);
+        Http::assertSent(fn ($r) => str_contains($r['text'], 'https://www.google.com/maps?q=15.3547,44.2066'));
+    }
+
+    public function test_delivery_needs_address_or_map_location_and_valid_coordinates()
+    {
+        $this->postJson('/api/orders', $this->orderPayload(['delivery' => '1', 'city' => 'صنعاء']))
+            ->assertStatus(422)->assertJsonValidationErrors(['address']);
+
+        $this->postJson('/api/orders', $this->orderPayload([
+            'delivery' => '1', 'city' => 'صنعاء', 'address' => 'شارع 1', 'locationLat' => '95', 'locationLng' => '44.2',
+        ]))->assertStatus(422)->assertJsonValidationErrors(['locationLat']);
+
+        $this->postJson('/api/orders', $this->orderPayload([
+            'delivery' => '1', 'city' => 'صنعاء', 'address' => 'شارع 1', 'locationLat' => '15.35',
+        ]))->assertStatus(422)->assertJsonValidationErrors(['locationLng']);
+    }
+
+    public function test_map_location_is_ignored_for_store_pickup()
+    {
+        $this->postJson('/api/orders', $this->orderPayload([
+            'delivery' => '0', 'locationLat' => '15.35', 'locationLng' => '44.2',
+        ]))->assertCreated()->assertJsonPath('data.mapUrl', null);
+    }
+
+    public function test_checkout_page_allows_geolocation_for_the_map()
+    {
+        $this->get('/checkout')->assertOk()
+            ->assertSee('co-address', false)->assertSee('location-map', false)
+            ->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self), payment=(), usb=()');
+    }
+
     public function test_production_stores_uploads_in_database_by_default()
     {
         $original = [$_SERVER['APP_ENV'] ?? null, $_ENV['APP_ENV'] ?? null];

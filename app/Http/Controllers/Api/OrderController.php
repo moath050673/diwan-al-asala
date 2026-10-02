@@ -50,6 +50,7 @@ class OrderController extends Controller
             'customerName' => $order->customer_name,
             'customerPhone' => $order->customer_phone,
             'customerAddress' => $order->customer_address,
+            'mapUrl' => $order->map_url,
             'paymentMethodLabel' => Order::PAYMENT_LABELS[$order->payment_method],
         ]], 201);
     }

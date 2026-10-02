@@ -55,6 +55,7 @@ const WhatsAppLink = (() => {
       `اسم العميل: ${order.customerName}`,
       `رقم الهاتف: ${order.customerPhone}`,
       `العنوان: ${order.customerAddress}`,
+      ...(order.mapUrl ? [`الموقع على الخريطة: ${order.mapUrl}`] : []),
       `طريقة الدفع: ${order.paymentMethodLabel}`,
     ];
     return buildLink(lines.join('\n'));

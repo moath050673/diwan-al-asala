@@ -9,8 +9,11 @@ class Order extends Model
     protected $fillable = [
         'order_number', 'customer_id', 'subtotal', 'shipping_cost', 'delivery', 'discount', 'total',
         'payment_method', 'payment_status', 'order_status',
-        'customer_name', 'customer_phone', 'customer_address', 'notes', 'stock_released_at',
+        'customer_name', 'customer_phone', 'customer_address', 'location_lat', 'location_lng',
+        'notes', 'stock_released_at',
     ];
+
+    protected $appends = ['map_url'];
 
     protected function casts(): array
     {
@@ -20,8 +23,22 @@ class Order extends Model
             'delivery' => 'boolean',
             'discount' => 'decimal:2',
             'total' => 'decimal:2',
+            'location_lat' => 'float',
+            'location_lng' => 'float',
             'stock_released_at' => 'datetime',
         ];
+    }
+
+    /**
+     * رابط Google Maps لموقع التوصيل المحدد من الخريطة (null إذا لم يحدده العميل).
+     */
+    public function getMapUrlAttribute(): ?string
+    {
+        if ($this->location_lat === null || $this->location_lng === null) {
+            return null;
+        }
+
+        return 'https://www.google.com/maps?q='.$this->location_lat.','.$this->location_lng;
     }
 
     public function customer()

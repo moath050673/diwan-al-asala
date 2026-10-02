@@ -54,6 +54,15 @@
 .form-error { color: var(--color-danger); font-size: 12px; margin-top: 4px; display: none; }
 .form-group.invalid input, .form-group.invalid textarea { border-color: var(--color-danger); }
 .form-group.invalid .form-error { display: block; }
+.field-hint { display: block; font-size: 12px; color: var(--color-text-muted); margin-top: 6px; }
+.field-hint.ok { color: var(--color-success, #15803d); font-weight: 700; }
+
+/* ---------- Delivery location map (checkout) ---------- */
+.map-picker-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.map-picker-actions .map-clear { background: transparent; border: 1.5px solid var(--color-border); color: var(--color-text-muted); }
+.location-map { height: 300px; margin-top: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; z-index: 0; }
+.location-map[hidden] { display: none; }
+.location-map .leaflet-container, .location-map.leaflet-container { direction: ltr; font-family: inherit; }
 
 /* ---------- Payment method cards ---------- */
 .payment-methods { display: grid; gap: 14px; }

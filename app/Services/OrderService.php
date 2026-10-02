@@ -82,6 +82,8 @@ class OrderService
             $fullAddress = $withDelivery
                 ? trim(($payload['city'] ?? '').' - '.($payload['area'] ?? '').' - '.($payload['address'] ?? ''), ' -')
                 : Order::PICKUP_ADDRESS;
+            // الموقع من الخريطة يُحفظ مع التوصيل فقط (لا معنى له عند الاستلام من المتجر)
+            $hasLocation = $withDelivery && isset($payload['locationLat'], $payload['locationLng']);
 
             // إيجاد العميل بحسب رقم الهاتف، أو إنشاء سجل جديد له إذا كانت أول مرة يطلب فيها
             $customer = Customer::firstOrCreate(
@@ -115,6 +117,8 @@ class OrderService
                 'customer_name' => $payload['customerName'],
                 'customer_phone' => $payload['customerPhone'],
                 'customer_address' => $fullAddress,
+                'location_lat' => $hasLocation ? round((float) $payload['locationLat'], 7) : null,
+                'location_lng' => $hasLocation ? round((float) $payload['locationLng'], 7) : null,
                 'notes' => $payload['notes'] ?? null,
             ]);
 

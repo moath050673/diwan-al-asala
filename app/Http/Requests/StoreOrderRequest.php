@@ -43,7 +43,10 @@ class StoreOrderRequest extends FormRequest
             'delivery' => 'sometimes|boolean',
             'city' => [Rule::requiredIf($this->wantsDelivery()), 'nullable', 'string', 'max:100'],
             'area' => 'nullable|string|max:100',
-            'address' => [Rule::requiredIf($this->wantsDelivery()), 'nullable', 'string', 'max:1000'],
+            // مع التوصيل: العنوان المكتوب أو الموقع من الخريطة (أحدهما على الأقل)
+            'address' => [Rule::requiredIf($this->wantsDelivery() && !$this->filled('locationLat')), 'nullable', 'string', 'max:1000'],
+            'locationLat' => 'nullable|required_with:locationLng|numeric|between:-90,90',
+            'locationLng' => 'nullable|required_with:locationLat|numeric|between:-180,180',
             'notes' => 'nullable|string|max:2000',
             'paymentMethod' => ['required', Rule::in(array_keys(Order::PAYMENT_LABELS))],
             'transactionNumber' => 'nullable|string|max:100',
@@ -53,6 +56,13 @@ class StoreOrderRequest extends FormRequest
             'items' => 'required|array|min:1|max:50',
             'items.*.productId' => 'required|integer',
             'items.*.quantity' => 'required|integer|min:1|max:1000',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'address.required' => 'يرجى كتابة العنوان بالتفصيل أو تحديد موقعك من الخريطة',
         ];
     }
 }

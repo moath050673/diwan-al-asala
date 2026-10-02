@@ -47,7 +47,8 @@ class NewOrderNotifier
             ."👤 {$order->customer_name}\n"
             ."📞 {$order->customer_phone}\n"
             .($order->delivery
-                ? "🚚 توصيل: {$order->customer_address}\n\n"
+                ? "🚚 توصيل: {$order->customer_address}\n"
+                    .($order->map_url ? "📍 الموقع على الخريطة: {$order->map_url}\n" : '')."\n"
                 : "🏪 استلام من المتجر (بدون توصيل)\n\n")
             ."{$items}\n\n"
             ."💰 الإجمالي: {$total} ريال\n"
