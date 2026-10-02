@@ -46,6 +46,13 @@ return [
         'chat_id' => env('TELEGRAM_CHAT_ID'),
     ],
 
+    // إشعارات حقيقية على جوال/كمبيوتر المدير (Web Push) — المفاتيح من: php artisan push:vapid
+    'web_push' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        'subject' => env('VAPID_SUBJECT'), // mailto:you@example.com أو رابط الموقع (الافتراضي APP_URL)
+    ],
+
     // تنبيه على Telegram عند حدوث خطأ في الموقع (نفس البوت ونفس المحادثة) — مرة كل 30 دقيقة لنفس الخطأ
     'error_alerts' => [
         'telegram' => (bool) env('ERROR_ALERTS_TELEGRAM', true),

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\PushSubscriptionController;
 use App\Http\Controllers\Api\SettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/payments/{id}', [PaymentController::class, 'show']);
         Route::get('/payments/{id}/receipt', [PaymentController::class, 'receipt']);
         Route::put('/payments/{id}/status', [PaymentController::class, 'updateStatus']);
+
+        // إشعارات الطلبات على أجهزة المدير/الموظفين (Web Push)
+        Route::get('/push/key', [PushSubscriptionController::class, 'key']);
+        Route::post('/push/subscriptions', [PushSubscriptionController::class, 'store']);
+        Route::post('/push/subscriptions/delete', [PushSubscriptionController::class, 'destroy']);
+        Route::post('/push/test', [PushSubscriptionController::class, 'test'])->middleware('throttle:6,1');
 
         Route::get('/contact', [ContactController::class, 'index']);
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);

@@ -104,10 +104,86 @@ function renderSidebar(active) {
 }
 
 /* ===================================================================
+   PushDevice — تسجيل هذا الجهاز لإشعارات الطلبات الحقيقية (Web Push):
+   تصل على شاشة القفل/شريط الإشعارات مثل واتساب حتى لو أُغلقت لوحة التحكم.
+   Service Worker: /push-sw.js بنطاق /admin/ فقط.
+   =================================================================== */
+const PushDevice = (() => {
+  const SW_URL = '/push-sw.js';
+  const SCOPE = '/admin/';
+
+  const supported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && window.isSecureContext;
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+  // الآيفون يدعم الإشعارات فقط عند فتح اللوحة من أيقونة الشاشة الرئيسية (iOS 16.4+)
+  const needsHomeScreen = () => isIOS() && !isStandalone();
+
+  function keyToBytes(base64url) {
+    const base64 = (base64url + '='.repeat((4 - base64url.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+    return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  }
+
+  function sameKey(subscription, bytes) {
+    const current = subscription.options && subscription.options.applicationServerKey;
+    if (!current) return true; // متصفحات لا تكشف المفتاح — نفترض أنه نفسه
+    const a = new Uint8Array(current);
+    return a.length === bytes.length && a.every((v, i) => v === bytes[i]);
+  }
+
+  async function registration() {
+    if (!('serviceWorker' in navigator) || !window.isSecureContext) return null;
+    try {
+      await navigator.serviceWorker.register(SW_URL, { scope: SCOPE });
+      return await navigator.serviceWorker.ready;
+    } catch (e) { return null; }
+  }
+
+  /** @returns {'ok'|'server'|'unsupported'|'denied'|'error'} */
+  async function subscribe() {
+    if (!supported() || needsHomeScreen()) return 'unsupported';
+    if (Notification.permission !== 'granted') return 'denied';
+
+    const res = await adminRequest('/push/key').catch(() => null);
+    const publicKey = res && res.success && res.data.publicKey;
+    if (!publicKey) return 'server';
+
+    try {
+      const reg = await registration();
+      if (!reg) return 'unsupported';
+      const key = keyToBytes(publicKey);
+      let sub = await reg.pushManager.getSubscription();
+      if (sub && !sameKey(sub, key)) { await sub.unsubscribe(); sub = null; } // تغيّرت مفاتيح الخادم
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+
+      const encodings = PushManager.supportedContentEncodings || ['aesgcm'];
+      const saved = await adminRequest('/push/subscriptions', {
+        method: 'POST',
+        body: JSON.stringify({ ...sub.toJSON(), contentEncoding: encodings.includes('aes128gcm') ? 'aes128gcm' : 'aesgcm' }),
+      });
+      return saved && saved.success ? 'ok' : 'error';
+    } catch (e) { return 'error'; }
+  }
+
+  async function unsubscribe() {
+    if (!supported()) return;
+    try {
+      const reg = await navigator.serviceWorker.getRegistration(SCOPE);
+      const sub = reg && await reg.pushManager.getSubscription();
+      if (!sub) return;
+      await adminRequest('/push/subscriptions/delete', { method: 'POST', body: JSON.stringify({ endpoint: sub.endpoint }) });
+      await sub.unsubscribe();
+    } catch (e) { /* لا شيء — الاشتراك المنتهي يُحذف تلقائيًا من الخادم عند أول إرسال */ }
+  }
+
+  return { registration, subscribe, unsubscribe, needsHomeScreen };
+})();
+
+/* ===================================================================
    OrderAlerts — تنبيه فوري بالطلبات الجديدة أثناء فتح لوحة التحكم
    (جوال أو كمبيوتر): صوت + إشعار المتصفح + اهتزاز + رسالة على الشاشة
    + عدد الطلبات الجديدة بجانب "الطلبات" وفي عنوان التبويب.
-   للتنبيه واللوحة مغلقة: استخدم Telegram (راجع TELEGRAM_* في .env).
+   للتنبيه واللوحة مغلقة: PushDevice أعلاه (Web Push) أو Telegram (TELEGRAM_* في .env).
    =================================================================== */
 const OrderAlerts = (() => {
   const POLL_MS = 15000;
@@ -137,14 +213,26 @@ const OrderAlerts = (() => {
     });
   }
 
-  function toast(order, isSummary = false) {
+  /** رسالة على الشاشة — innerHtml يجب أن تكون قيمه الديناميكية مهرّبة مسبقًا بـ escapeHtml */
+  function showToast(innerHtml) {
     let stack = document.querySelector('.toast-stack');
     if (!stack) { stack = document.createElement('div'); stack.className = 'toast-stack'; document.body.appendChild(stack); }
     while (stack.children.length >= 4) stack.firstElementChild.remove();
     const el = document.createElement('div');
     el.className = 'admin-toast';
     el.setAttribute('role', 'alert');
-    el.innerHTML = (isSummary ? `
+    el.innerHTML = innerHtml + '<button class="close" type="button" aria-label="إغلاق">×</button>';
+    el.querySelector('.close').addEventListener('click', () => el.remove());
+    stack.appendChild(el);
+    setTimeout(() => el.remove(), 20000);
+  }
+
+  function notice(title, body) {
+    showToast(`<div><strong>${escapeHtml(title)}</strong><div>${escapeHtml(body)}</div></div>`);
+  }
+
+  function toast(order, isSummary = false) {
+    showToast(isSummary ? `
       <div>
         <strong>🔔 ${escapeHtml(order.orderNumber)}</strong>
         <a href="/admin/orders">${escapeHtml(order.customerName)} ←</a>
@@ -153,22 +241,21 @@ const OrderAlerts = (() => {
         <strong>🔔 طلب جديد #${escapeHtml(order.orderNumber)}</strong>
         <div>${escapeHtml(order.customerName)} — ${formatPrice(order.total)}</div>
         <a href="/admin/orders?open=${encodeURIComponent(order.id)}">عرض الطلب ←</a>
-      </div>`) + '<button class="close" type="button" aria-label="إغلاق">×</button>';
-    el.querySelector('.close').addEventListener('click', () => el.remove());
-    stack.appendChild(el);
-    setTimeout(() => el.remove(), 20000);
+      </div>`);
   }
 
-  function systemNotification(order) {
+  async function systemNotification(order) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const title = `طلب جديد #${order.orderNumber}`;
+    // نفس الوسم (tag) الذي يستخدمه إشعار الخادم — إن وصل الاثنان يظهر إشعار واحد فقط
+    const options = { body: `${order.customerName} — ${formatPrice(order.total)}`, icon: '/img/icon-192.png', badge: '/img/notify-badge.png', tag: 'order-' + order.id, data: { url: '/admin/orders?open=' + order.id } };
     try {
-      const n = new Notification(`طلب جديد #${order.orderNumber}`, {
-        body: `${order.customerName} — ${formatPrice(order.total)}`,
-        icon: '/img/favicon.png',
-        tag: 'order-' + order.id,
-      });
-      n.onclick = () => { window.focus(); window.location.href = '/admin/orders?open=' + order.id; };
-    } catch (e) { /* بعض متصفحات الجوال تتطلب Service Worker — نكتفي بالتنبيه داخل الصفحة */ }
+      // متصفحات الجوال (Android) لا تسمح بـ new Notification — تتطلب Service Worker
+      const reg = await PushDevice.registration();
+      if (reg) { await reg.showNotification(title, options); return; }
+      const n = new Notification(title, options);
+      n.onclick = () => { window.focus(); window.location.href = options.data.url; };
+    } catch (e) { /* نكتفي بالتنبيه داخل الصفحة */ }
   }
 
   function setBadge(count) {
@@ -223,18 +310,50 @@ const OrderAlerts = (() => {
   async function enable() {
     localStorage.setItem(ENABLED_KEY, '1');
     unlockAudio();
+    refreshButton();
+    chime(); // نغمة تجريبية ليتأكد المستخدم أن الصوت يعمل
+
+    if (PushDevice.needsHomeScreen()) {
+      notice('📲 خطوة واحدة للآيفون', 'لاستقبال الإشعارات واللوحة مغلقة: اضغط زر المشاركة ⬆️ ثم "إضافة إلى الشاشة الرئيسية"، وافتح اللوحة من الأيقونة وفعّل الإشعارات من هناك.');
+      return;
+    }
     if ('Notification' in window && Notification.permission === 'default') {
       try { await Notification.requestPermission(); } catch (e) { /* غير مدعوم */ }
     }
+    if ('Notification' in window && Notification.permission === 'denied') {
+      notice('🔕 الإشعارات محظورة', 'اسمح بالإشعارات لهذا الموقع من إعدادات المتصفح (رمز القفل بجانب الرابط) ثم اضغط الزر مرة أخرى.');
+      return;
+    }
+
+    const result = await PushDevice.subscribe();
+    if (result === 'ok') {
+      // إشعار تجريبي حقيقي من الخادم — يثبت أن السلسلة كاملة تعمل على هذا الجهاز
+      adminRequest('/push/test', { method: 'POST' }).catch(() => {});
+      notice('✅ تم تفعيل الإشعارات', 'سيصلك إشعار على هذا الجهاز مع كل طلب جديد حتى لو كانت لوحة التحكم مغلقة.');
+    } else if (result === 'server') {
+      notice('🔔 التنبيه يعمل أثناء فتح اللوحة فقط', 'لتفعيل الإشعارات واللوحة مغلقة: يجب ضبط مفاتيح VAPID على الخادم (php artisan push:vapid).');
+    } else if (result === 'unsupported') {
+      notice('🔔 التنبيه يعمل أثناء فتح اللوحة فقط', 'هذا المتصفح لا يدعم الإشعارات في الخلفية — استخدم Chrome أو Edge أو Safari حديث.');
+    } else if (result === 'error') {
+      notice('⚠️ تعذّر تسجيل الجهاز', 'تحقق من الاتصال بالإنترنت ثم اضغط الزر مرة أخرى (إيقاف ثم تفعيل).');
+    }
+  }
+
+  async function disable() {
+    localStorage.setItem(ENABLED_KEY, '0');
     refreshButton();
-    chime(); // نغمة تجريبية ليتأكد المستخدم أن الصوت يعمل
+    await PushDevice.unsubscribe();
   }
 
   function start() {
     refreshButton();
     document.getElementById('notify-btn')?.addEventListener('click', () => {
-      if (isOn()) { localStorage.setItem(ENABLED_KEY, '0'); refreshButton(); } else { enable(); }
+      if (isOn()) { disable(); } else { enable(); }
     });
+    // مزامنة اشتراك الجهاز مرة في كل جلسة (يُجدَّد إن تغيّرت المفاتيح أو حُذف من الخادم)
+    if (isOn() && !sessionStorage.getItem('diwan_push_synced') && 'Notification' in window && Notification.permission === 'granted') {
+      PushDevice.subscribe().then((r) => { if (r === 'ok') sessionStorage.setItem('diwan_push_synced', '1'); });
+    }
     document.addEventListener('pointerdown', unlockAudio, { once: true });
 
     poll();

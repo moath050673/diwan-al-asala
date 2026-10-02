@@ -8,19 +8,21 @@ use Illuminate\Support\Facades\Mail;
 
 /**
  * إشعار صاحب المتجر بالطلبات الجديدة خارج لوحة التحكم:
+ * - Web Push: إشعار حقيقي على جوال/كمبيوتر المدير (مثل واتساب) حتى لو كانت لوحة التحكم مغلقة
  * - Telegram: رسالة فورية تصل للجوال والكمبيوتر حتى لو كانت لوحة التحكم مغلقة
  * - البريد الإلكتروني
  * كل قناة تعمل فقط إذا كانت إعداداتها موجودة في .env، وأي فشل يُسجَّل ولا يوقف الطلب.
  */
 class NewOrderNotifier
 {
-    public function __construct(private TelegramClient $telegram) {}
+    public function __construct(private TelegramClient $telegram, private WebPushNotifier $webPush) {}
 
     public function notify(Order $order): void
     {
         $order->loadMissing('items');
         $message = $this->message($order);
 
+        $this->webPush->notifyNewOrder($order);
         $this->telegram->sendMessage($message);
         $this->sendEmail($order, $message);
     }

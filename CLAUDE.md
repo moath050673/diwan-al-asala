@@ -30,8 +30,14 @@ Laravel 12, PHP 8.2+, MySQL/MariaDB. Deployed on Laravel Cloud (Starter plan).
   merge), status changes (releases/re-reserves stock via `stock_released_at`), bulk delete,
   order numbers. **All order/stock logic belongs here.**
 - `Services/ProductImageStorage.php` — stores/deletes product images on the configured disk.
-- `Services/NewOrderNotifier.php` — Telegram + email notification after the response is sent
-  (`app()->terminating`).
+- `Services/NewOrderNotifier.php` — Web Push + Telegram + email notification after the response
+  is sent (`app()->terminating`).
+- `Services/WebPushNotifier.php` — real push notifications (lock screen, like WhatsApp) to every
+  admin/staff device in `push_subscriptions` (`minishlink/web-push`, VAPID keys from
+  `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`; no keys = no-op). Expired devices (404/410) are deleted.
+  Devices subscribe from the admin sidebar button (`PushDevice` in `admin.js`, service worker
+  `public/push-sw.js`, scope `/admin/`). iPhone: only after "Add to Home Screen"
+  (`public/admin-assets/admin.webmanifest`). `php artisan push:vapid` generates the keys.
 - `Filesystem/DatabaseAdapter.php` — custom Flysystem adapter (`database` driver) storing files
   in the `stored_files` table; registered in `AppServiceProvider`.
 - `Console/Commands/TelegramConnect.php` — `php artisan telegram:connect {token}` writes
@@ -73,6 +79,12 @@ Laravel 12, PHP 8.2+, MySQL/MariaDB. Deployed on Laravel Cloud (Starter plan).
 - Start MySQL from XAMPP first.
 - `php artisan serve --port=8100` (port 8000 may be used by another project).
 - Tests: `php artisan test` (SQLite in-memory). All tests must pass before committing.
+- XAMPP's OpenSSL cannot create EC keys without `OPENSSL_CONF=C:\xampp\php\extras\ssl\openssl.cnf`
+  (needed for `push:vapid`, sending Web Push locally, and the Web Push encryption test — skipped otherwise).
+- Brand assets (`public/`): `favicon.ico` (48px, shown by Google next to the link),
+  `apple-touch-icon.png`, `img/icon-192.png`, `img/icon-512.png`, `img/logo.jpg` (full logo,
+  og:image + schema logo), `img/logo-header.webp` (header), `img/notify-badge.png` (monochrome
+  notification badge). Rename files when replacing them — Cloudflare caches images.
 
 ## Deployment (Laravel Cloud)
 1. Push to `main` on GitHub; Laravel Cloud deploys from the repository.
@@ -86,7 +98,8 @@ Laravel 12, PHP 8.2+, MySQL/MariaDB. Deployed on Laravel Cloud (Starter plan).
 5. Key environment variables: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`,
    `APP_LOCALE=ar`, `APP_TIMEZONE=Asia/Aden`, `CACHE_STORE=database`,
    `SESSION_SECURE_COOKIE=true`, `PRODUCT_IMAGES_DISK=db_public`, `RECEIPTS_DISK=db_private`,
-   `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, payment account variables, `ADMIN_EMAIL`,
+   `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`
+   (from `php artisan push:vapid --show`), payment account variables, `ADMIN_EMAIL`,
    `ADMIN_PASSWORD`. See `.env.example`.
 6. First deploy only (Commands tab):
    `php artisan db:seed --class=SettingSeeder --force`,

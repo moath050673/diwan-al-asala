@@ -30,6 +30,8 @@
         <server name="TELEGRAM_BOT_TOKEN" value=""/>
         <server name="TELEGRAM_CHAT_ID" value=""/>
         <server name="ERROR_ALERTS_TELEGRAM" value="false"/>
+        <server name="VAPID_PUBLIC_KEY" value=""/>
+        <server name="VAPID_PRIVATE_KEY" value=""/>
         <server name="LOG_CHANNEL" value="null"/>
     </php>
 </phpunit>

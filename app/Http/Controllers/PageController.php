@@ -17,7 +17,7 @@ class PageController extends Controller
 {
     public function home()
     {
-        return view('pages.home', ['storeSchema' => $this->storeSchema()]);
+        return view('pages.home', ['storeSchema' => $this->storeSchema(), 'websiteSchema' => $this->websiteSchema()]);
     }
 
     public function products() { return view('pages.products'); }
@@ -114,6 +114,18 @@ class PageController extends Controller
         ];
     }
 
+    /** اسم الموقع الذي يعرضه Google فوق الرابط في نتائج البحث (بجانب الشعار favicon) */
+    private function websiteSchema(): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => 'ديوان الأصالة',
+            'alternateName' => ['متجر ديوان الأصالة', 'Diwan Al-Asalah'],
+            'url' => url('/'),
+        ];
+    }
+
     private function storeSchema(): array
     {
         try {
@@ -128,8 +140,8 @@ class PageController extends Controller
             '@type' => 'Store',
             'name' => $settings['store_name'] ?: 'متجر ديوان الأصالة',
             'url' => url('/'),
-            'logo' => url('/img/logo.png'),
-            'image' => url('/img/logo.png'),
+            'logo' => url('/img/logo.jpg'),
+            'image' => url('/img/logo.jpg'),
             'telephone' => $settings['whatsapp_number'] ? '+'.ltrim($settings['whatsapp_number'], '+') : null,
             'address' => ['@type' => 'PostalAddress', 'addressLocality' => 'صنعاء', 'addressCountry' => 'YE'],
             'currenciesAccepted' => 'YER',

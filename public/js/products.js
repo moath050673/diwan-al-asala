@@ -135,6 +135,9 @@ const Products = (() => {
     return placeholderMarkup(p.category);
   }
 
+  // على الجوال يظهر زر واتساب كأيقونة فقط (responsive.css) حتى يتسع زر السلة في البطاقة المدمجة
+  const WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.87.5 3.6 1.4 5.1L2 22l5.15-1.5a9.9 9.9 0 0 0 4.9 1.28c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.05c-1.6 0-3.1-.44-4.4-1.2l-.31-.18-3.06.9.9-2.98-.2-.32a8.16 8.16 0 0 1-1.24-4.36c0-4.53 3.7-8.23 8.3-8.23 4.6 0 8.3 3.7 8.3 8.23 0 4.53-3.7 8.14-8.3 8.14Z"/></svg>';
+
   function productCardHTML(p) {
     const discount = p.oldPrice ? Math.round(100 - (p.price / p.oldPrice) * 100) : null;
     const outOfStock = p.stock <= 0;
@@ -157,7 +160,7 @@ const Products = (() => {
       </div>
       <div class="product-actions">
         <button class="btn btn-primary btn-add-cart" data-id="${id}" ${outOfStock ? 'disabled' : ''}>أضف إلى السلة</button>
-        <button class="btn btn-whatsapp btn-wa-inquire" data-id="${id}">واتساب</button>
+        <button class="btn btn-whatsapp btn-wa-inquire" data-id="${id}" aria-label="استفسار عبر واتساب">${WA_ICON}<span class="btn-label">واتساب</span></button>
       </div>
     </div>`;
   }

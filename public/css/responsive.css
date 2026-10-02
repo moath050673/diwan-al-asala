@@ -4,6 +4,7 @@
    =================================================================== */
 
 @media (max-width: 1024px) {
+  .products-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .hero h1 { font-size: 42px; }
 }
@@ -23,7 +24,25 @@
   .logo { font-size: 20px; }
   .footer-grid { grid-template-columns: 1fr; text-align: center; }
   .social-icons { justify-content: center; }
-  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  /* منتجان جنبًا إلى جنب على الجوال — بطاقة مدمجة بدل منتج واحد يملأ الشاشة */
+  .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .product-body { padding: 10px; gap: 4px; }
+  .product-cat { font-size: 11px; }
+  .product-name { font-size: 14px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .product-rating { font-size: 11px; }
+  .product-price { flex-wrap: wrap; gap: 4px 6px; }
+  .price-now { font-size: 15px; }
+  .price-old { font-size: 11px; }
+  .stock-note { font-size: 11px; }
+  .product-actions { gap: 6px; padding: 0 10px 10px; }
+  .product-actions .btn { padding: 9px 6px; font-size: 12px; }
+  /* زر واتساب يصبح أيقونة فقط حتى يتسع زر السلة */
+  .product-actions .btn-wa-inquire { flex: 0 0 38px; padding: 9px 0; }
+  .product-actions .btn-wa-inquire .btn-label { display: none; }
+  .badge, .badge-out { top: 6px; font-size: 10px; padding: 3px 7px; }
+  .badge { right: 6px; }
+  .badge-out { left: 6px; }
+  .fav-btn { width: 30px; height: 30px; font-size: 14px; bottom: 6px; left: 6px; }
   .categories-grid { grid-template-columns: repeat(2, 1fr); }
   .cart-table thead { display: none; }
   .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: block; width: 100%; }
@@ -36,7 +55,6 @@
 }
 
 @media (max-width: 400px) {
-  .products-grid { grid-template-columns: 1fr; }
   .hero h1 { font-size: 26px; }
   .container { padding: 0 14px; }
 }

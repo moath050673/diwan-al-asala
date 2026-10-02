@@ -7,14 +7,20 @@
   // بيانات SEO لكل صفحة: كل صفحة تحدد title/description، وصفحة المنتج تحدد og_image و og_type
   $seoTitle = trim($__env->yieldContent('title', 'متجر ديوان الأصالة | عطور وبخور وزباد'));
   $seoDescription = trim($__env->yieldContent('description', 'متجر ديوان الأصالة، متخصص في بيع الزباد والبخور والعطور الأصيلة، توصيل داخل صنعاء اليمن.'));
-  $seoImage = trim($__env->yieldContent('og_image')) ?: url('/img/logo.png');
+  $seoImage = trim($__env->yieldContent('og_image')) ?: url('/img/logo.jpg');
   $seoUrl = url()->current();
 @endphp
 <title>{{ $seoTitle }}</title>
 <meta name="description" content="{{ $seoDescription }}">
 <meta name="robots" content="@yield('robots', 'index, follow')">
 <link rel="canonical" href="{{ $seoUrl }}">
-<link rel="icon" type="image/png" href="/img/favicon.png">
+{{-- شعار الموقع: Google يعرض favicon (مربع، مضاعفات 48px) بجانب الرابط في نتائج البحث --}}
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" href="/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="application-name" content="ديوان الأصالة">
+<meta name="apple-mobile-web-app-title" content="ديوان الأصالة">
 <meta name="theme-color" content="#2E2318">
 {{-- مشاركة الروابط على واتساب/فيسبوك/تويتر (Open Graph + Twitter Cards) --}}
 <meta property="og:site_name" content="متجر ديوان الأصالة">
@@ -24,6 +30,7 @@
 <meta property="og:description" content="{{ $seoDescription }}">
 <meta property="og:url" content="{{ $seoUrl }}">
 <meta property="og:image" content="{{ $seoImage }}">
+<meta property="og:image:alt" content="ديوان الأصالة">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $seoTitle }}">
 <meta name="twitter:description" content="{{ $seoDescription }}">

@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\PushSubscription;
 use App\Models\User;
 use App\Services\ImageOptimizer;
 use App\Services\TelegramClient;
+use App\Services\WebPushNotifier;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +27,7 @@ class HealthCheck extends Command
     private array $rows = [];
     private int $failures = 0;
 
-    public function handle(ImageOptimizer $images, TelegramClient $telegram): int
+    public function handle(ImageOptimizer $images, TelegramClient $telegram, WebPushNotifier $webPush): int
     {
         $this->rows = [];
         $this->failures = 0;
@@ -103,6 +105,9 @@ class HealthCheck extends Command
 
         // ---------- Notifications / Mail ----------
         $this->check('Telegram order notifications', $telegram->configured() ? 'ok' : 'warn', $telegram->configured() ? 'configured' : 'TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID missing');
+        $pushOn = $webPush->enabled();
+        $devices = $pushOn && $this->tableExists('push_subscriptions') ? PushSubscription::count() : 0;
+        $this->check('Web Push order notifications', $pushOn && $devices ? 'ok' : 'warn', $pushOn ? "{$devices} device(s) registered" : 'VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY missing (php artisan push:vapid)');
         $mailer = config('mail.default');
         $ownerEmail = config('store.owner_email');
         $mailOk = !$ownerEmail || !in_array($mailer, ['log', 'array'], true);
