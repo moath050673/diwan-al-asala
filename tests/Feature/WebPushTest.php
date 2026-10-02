@@ -82,6 +82,19 @@ class WebPushTest extends TestCase
         $this->placeOrder()->assertCreated(); // لا مفاتيح = لا إرسال ولا خطأ
     }
 
+    public function test_telegram_still_arrives_when_web_push_fails()
+    {
+        // مثل طلب يصل أثناء النشر قبل إنشاء جدول الاشتراكات
+        \Illuminate\Support\Facades\Schema::drop('push_subscriptions');
+        config(['store.web_push.public_key' => self::VAPID_PUBLIC, 'store.web_push.private_key' => self::VAPID_PRIVATE,
+            'store.telegram.bot_token' => 'TOKEN', 'store.telegram.chat_id' => '111']);
+        \Illuminate\Support\Facades\Http::fake(['api.telegram.org/*' => \Illuminate\Support\Facades\Http::response(['ok' => true])]);
+
+        $this->placeOrder()->assertCreated();
+
+        \Illuminate\Support\Facades\Http::assertSent(fn ($r) => str_contains($r->url(), 'botTOKEN/sendMessage'));
+    }
+
     public function test_new_order_pushes_to_every_device_and_removes_expired_ones()
     {
         // التشفير يحتاج توليد مفاتيح EC من OpenSSL (على ويندوز/XAMPP: OPENSSL_CONF)

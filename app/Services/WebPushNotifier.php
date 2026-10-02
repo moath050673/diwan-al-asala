@@ -30,6 +30,10 @@ class WebPushNotifier
     {
         $method = Order::PAYMENT_LABELS[$order->payment_method] ?? $order->payment_method;
 
+        if (!$this->enabled()) {
+            return; // بدون مفاتيح VAPID لا نلمس قاعدة البيانات أصلًا
+        }
+
         $this->send(PushSubscription::query()->get(), [
             'title' => "🔔 طلب جديد #{$order->order_number}",
             'body' => "{$order->customer_name} — ".number_format((float) $order->total)." ريال\n{$method}"

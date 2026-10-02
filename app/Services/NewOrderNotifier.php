@@ -22,9 +22,19 @@ class NewOrderNotifier
         $order->loadMissing('items');
         $message = $this->message($order);
 
-        $this->webPush->notifyNewOrder($order);
-        $this->telegram->sendMessage($message);
-        $this->sendEmail($order, $message);
+        // كل قناة معزولة: فشل إحداها (جدول ناقص، خدمة متوقفة...) لا يمنع وصول البقية
+        $this->safely('Telegram', fn () => $this->telegram->sendMessage($message));
+        $this->safely('Web Push', fn () => $this->webPush->notifyNewOrder($order));
+        $this->safely('Email', fn () => $this->sendEmail($order, $message));
+    }
+
+    private function safely(string $channel, callable $send): void
+    {
+        try {
+            $send();
+        } catch (\Throwable $e) {
+            Log::warning("تعذّر إرسال إشعار الطلب عبر {$channel}: ".$e->getMessage());
+        }
     }
 
     private function message(Order $order): string
