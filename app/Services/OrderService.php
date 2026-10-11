@@ -60,7 +60,10 @@ class OrderService
                     throw ValidationException::withMessages(['items' => "منتج غير موجود ({$productId})"]);
                 }
                 if ($product->stock_quantity < $quantity) {
-                    throw ValidationException::withMessages(['items' => "الكمية المطلوبة من \"{$product->name}\" غير متوفرة في المخزون"]);
+                    $available = max(0, (int) $product->stock_quantity);
+                    throw ValidationException::withMessages(['items' => $available > 0
+                        ? "الكمية المطلوبة من \"{$product->name}\" ({$quantity}) أكبر من المتوفر في المخزون ({$available} فقط)"
+                        : "\"{$product->name}\" نفد من المخزون"]);
                 }
 
                 $lineTotal = (float) $product->price * $quantity;

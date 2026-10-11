@@ -162,16 +162,19 @@
     document.getElementById('wa-inquire-btn').href = WhatsAppLink.productInquiry(product);
 
     const qtyInput = document.getElementById('qty-input');
-    document.getElementById('qty-minus').addEventListener('click', () => { qtyInput.value = Math.max(1, +qtyInput.value - 1); });
-    document.getElementById('qty-plus').addEventListener('click', () => { qtyInput.value = Math.min(product.stock, +qtyInput.value + 1); });
+    // الكمية لا تتجاوز المخزون المتوفر (والخادم يرفض أي زيادة في كل الأحوال)
+    const clampQty = (v) => Math.max(1, Math.min(Math.max(1, product.stock), Math.floor(+v) || 1));
+    document.getElementById('qty-minus').addEventListener('click', () => { qtyInput.value = clampQty(+qtyInput.value - 1); });
+    document.getElementById('qty-plus').addEventListener('click', () => { qtyInput.value = clampQty(+qtyInput.value + 1); });
+    qtyInput.addEventListener('change', () => { qtyInput.value = clampQty(qtyInput.value); });
 
     document.getElementById('add-to-cart-btn').addEventListener('click', () => {
-      Cart.add(product, +qtyInput.value);
-      showToast(`تمت إضافة "${product.name}" إلى السلة`, 'success');
+      Cart.addNotice(product, Cart.add(product, clampQty(qtyInput.value)));
     });
     document.getElementById('buy-now-btn').addEventListener('click', () => {
-      Cart.add(product, +qtyInput.value);
-      window.location.href = '/checkout';
+      const result = Cart.add(product, clampQty(qtyInput.value));
+      if (result.inCart > 0) window.location.href = '/checkout';
+      else Cart.addNotice(product, result);
     });
 
     const all = await Products.loadAll();

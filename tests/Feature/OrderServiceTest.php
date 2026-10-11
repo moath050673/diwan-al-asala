@@ -77,6 +77,18 @@ class OrderServiceTest extends TestCase
         $this->assertCount(0, Order::all());
     }
 
+    public function test_order_exceeding_stock_is_rejected_and_reports_available_quantity()
+    {
+        $product = $this->createProduct(4);
+
+        $this->postJson('/api/orders', $this->orderPayload([['productId' => $product->id, 'quantity' => 6]]))
+            ->assertUnprocessable()
+            ->assertJsonFragment(['items' => ["الكمية المطلوبة من \"{$product->name}\" (6) أكبر من المتوفر في المخزون (4 فقط)"]]);
+
+        $this->assertCount(0, Order::all());
+        $this->assertEquals(4, $product->fresh()->stock_quantity);
+    }
+
     public function test_duplicate_lines_for_same_product_cannot_exceed_stock()
     {
         $product = $this->createProduct(5);

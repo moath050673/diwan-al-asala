@@ -39,7 +39,7 @@
       <tr data-id="${escapeHtml(i.id)}">
         <td><div class="cart-item-info"><div class="cart-item-thumb">${i.image ? `<img src="${escapeHtml(i.image)}" alt="" loading="lazy">` : "🧴"}</div><span>${escapeHtml(i.name)}</span></div></td>
         <td>${Products.formatPrice(i.price)}</td>
-        <td><div class="qty-control"><button type="button" class="qty-dec" aria-label="إنقاص الكمية">−</button><input type="number" class="qty-val" value="${escapeHtml(i.qty)}" min="1" aria-label="الكمية"><button type="button" class="qty-inc" aria-label="زيادة الكمية">+</button></div></td>
+        <td><div class="qty-control"><button type="button" class="qty-dec" aria-label="إنقاص الكمية">−</button><input type="number" class="qty-val" value="${escapeHtml(i.qty)}" min="1" ${Number.isFinite(i.stock) ? `max="${escapeHtml(i.stock)}"` : ''} aria-label="الكمية"><button type="button" class="qty-inc" aria-label="زيادة الكمية" ${i.qty >= Cart.maxQty(i) ? 'disabled' : ''}>+</button></div>${Number.isFinite(i.stock) ? `<small class="stock-note">المتوفر: ${escapeHtml(i.stock)}</small>` : ''}</td>
         <td>${Products.formatPrice(i.price * i.qty)}</td>
         <td><button type="button" class="remove-item" aria-label="حذف ${escapeHtml(i.name)} من السلة">حذف</button></td>
       </tr>
@@ -58,7 +58,11 @@
 
     body.querySelectorAll('tr').forEach(row => {
       const id = row.dataset.id;
-      row.querySelector('.qty-inc').addEventListener('click', () => { Cart.updateQty(id, +row.querySelector('.qty-val').value + 1); renderCart(); });
+      row.querySelector('.qty-inc').addEventListener('click', () => {
+        const item = Cart.getAll().find(i => i.id == id);
+        if (item && item.qty >= Cart.maxQty(item)) { showToast(`المتوفر من "${item.name}" ${item.stock} قطعة فقط`, 'error'); return; }
+        Cart.updateQty(id, +row.querySelector('.qty-val').value + 1); renderCart();
+      });
       row.querySelector('.qty-dec').addEventListener('click', () => { Cart.updateQty(id, Math.max(1, +row.querySelector('.qty-val').value - 1)); renderCart(); });
       row.querySelector('.qty-val').addEventListener('change', (e) => { Cart.updateQty(id, Math.max(1, +e.target.value)); renderCart(); });
       row.querySelector('.remove-item').addEventListener('click', () => { Cart.remove(id); renderCart(); showToast('تم حذف المنتج من السلة', 'success'); });
@@ -69,7 +73,8 @@
     renderHeader(''); renderFooter(); renderCart();
     // أسعار السلة المحفوظة في المتصفح قد تكون قديمة — نحدّثها من المتجر
     const sync = await Cart.syncWithStore();
-    if (sync.removed.length || sync.changed) { renderCart(); Cart.syncNotice(sync); }
+    renderCart(); // يعرض المخزون المتوفر وحدود الكمية بعد المزامنة
+    if (sync.removed.length || sync.changed || sync.limited.length) Cart.syncNotice(sync);
   });
 </script>
 @endpush

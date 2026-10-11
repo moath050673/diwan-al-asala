@@ -189,8 +189,7 @@ document.addEventListener('click', async (e) => {
     const id = addBtn.dataset.id;
     const product = await Products.getById(id);
     if (product) {
-      Cart.add(product, 1);
-      showToast(`تمت إضافة "${product.name}" إلى السلة`, 'success');
+      Cart.addNotice(product, Cart.add(product, 1));
     }
   }
   const waBtn = e.target.closest('.btn-wa-inquire');
